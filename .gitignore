@@ -1,0 +1,19 @@
+# Eclipse
+.metadata/
+.settings/
+.project
+.classpath
+.factorypath
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Build/Java
+bin/
+target/
+*.class
+
+# Web/Frontend
+node_modules/
+dist/
