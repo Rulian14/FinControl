@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinControl - Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body class="dashboard-page">
+
+<div class="dashboard-container">
+
+    <!-- MENU LATERAL -->
+    <aside class="sidebar">
+
+        <h2 class="logo">Fin<span>Control</span></h2>
+
+        <nav>
+            <a href="#">🏠 Início</a>
+            <a href="#">💰 Receitas</a>
+            <a href="#">📉 Despesas</a>
+            <a href="#">🎯 Metas</a>
+            <a href="#">📊 Relatórios</a>
+            <a href="#">⚙ Configurações</a>
+        </nav>
+
+        <button class="logout-btn" onclick="logout()">Sair</button>
+
+    </aside>
+
+    <!-- CONTEÚDO -->
+    <main class="main-content">
+
+        <header class="topbar">
+            <h1>Olá, Usuário 👋</h1>
+            <p>Bem-vindo ao seu painel financeiro</p>
+        </header>
+
+        <!-- CARDS -->
+        <section class="cards">
+
+            <div class="card saldo">
+                <h3>Saldo Atual</h3>
+                <p>R$ 5.280,00</p>
+            </div>
+
+            <div class="card receita">
+                <h3>Receitas</h3>
+                <p>R$ 8.000,00</p>
+            </div>
+
+            <div class="card despesa">
+                <h3>Despesas</h3>
+                <p>R$ 2.720,00</p>
+            </div>
+
+        </section>
+
+        <!-- TABELA -->
+        <section class="tabela-box">
+
+            <h2>Últimos Lançamentos</h2>
+
+            <table>
+                <tr>
+                    <th>Descrição</th>
+                    <th>Categoria</th>
+                    <th>Valor</th>
+                </tr>
+
+                <tr>
+                    <td>Salário</td>
+                    <td>Receita</td>
+                    <td class="positivo">+ R$ 4.500</td>
+                </tr>
+
+                <tr>
+                    <td>Aluguel</td>
+                    <td>Despesa</td>
+                    <td class="negativo">- R$ 1.200</td>
+                </tr>
+
+                <tr>
+                    <td>Mercado</td>
+                    <td>Despesa</td>
+                    <td class="negativo">- R$ 450</td>
+                </tr>
+
+            </table>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script>
+function logout(){
+    window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>
