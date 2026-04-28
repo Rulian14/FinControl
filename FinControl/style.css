@@ -1,0 +1,210 @@
+/* =====================================
+   FINCONTROL - LOGIN (MESMA COR CADASTRO)
+===================================== */
+
+:root{
+    --bg:#0B3D2E;
+    --primary:#146C43;
+    --hover:#0E5A38;
+    --white:#ffffff;
+    --text:#1e1e1e;
+    --verde-claro:#1FA971;
+    --cinza:#F4F6F5;
+    --borda:#D9E2DD;
+    --success:#22c55e;
+    --error:#ef4444;
+}
+
+/* RESET */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, Helvetica, sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#0B3D2E,#146C43);
+    padding:20px;
+}
+
+/* CARD PRINCIPAL */
+.wrapper{
+    width:100%;
+    max-width:980px;
+    display:grid;
+    grid-template-columns:1.1fr .9fr;
+    background:#ffffff;
+    border-radius:24px;
+    overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.30);
+}
+
+/* LADO ESQUERDO */
+.hero{
+    padding:48px;
+    background:linear-gradient(160deg,#0B3D2E,#146C43);
+    color:white;
+}
+
+.logo{
+    font-size:34px;
+    font-weight:800;
+    letter-spacing:.5px;
+}
+
+.logo span{
+    color:#7CFFBE;
+}
+
+.hero p{
+    margin-top:18px;
+    line-height:1.6;
+    color:#d1fae5;
+}
+
+.stats{
+    margin-top:28px;
+    display:grid;
+    gap:14px;
+}
+
+.stat{
+    padding:14px;
+    border-radius:16px;
+    background:rgba(255,255,255,.10);
+    border:1px solid rgba(255,255,255,.15);
+}
+
+/* FORMULÁRIO */
+.form-area{
+    padding:48px;
+    background:#ffffff;
+}
+
+.form-area h2{
+    font-size:28px;
+    margin-bottom:8px;
+    color:#0B3D2E;
+}
+
+.subtitle{
+    color:#666;
+    margin-bottom:28px;
+}
+
+label{
+    display:block;
+    margin:14px 0 8px;
+    font-size:14px;
+    color:#1e1e1e;
+    font-weight:bold;
+}
+
+input{
+    width:100%;
+    padding:14px 16px;
+    border-radius:14px;
+    border:1px solid #D9E2DD;
+    background:#ffffff;
+    color:#1e1e1e;
+    outline:none;
+    font-size:15px;
+}
+
+input:focus{
+    border-color:#146C43;
+    box-shadow:0 0 5px rgba(20,108,67,.25);
+}
+
+.row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin:14px 0 22px;
+    font-size:14px;
+}
+
+.row a{
+    color:#146C43;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+.row a:hover{
+    color:#0E5A38;
+}
+
+/* BOTÃO */
+button{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    background:#146C43;
+    color:white;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    transition:.2s;
+}
+
+button:hover{
+    background:#0E5A38;
+    transform:translateY(-1px);
+}
+
+/* MENSAGENS */
+.msg{
+    margin-top:14px;
+    font-size:14px;
+    min-height:18px;
+    font-weight:bold;
+}
+
+.success{
+    color:var(--success);
+}
+
+.error{
+    color:var(--error);
+}
+
+/* FOOTER */
+.footer{
+    margin-top:20px;
+    text-align:center;
+    color:#666;
+    font-size:14px;
+}
+
+.footer a{
+    color:#146C43;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+.footer a:hover{
+    color:#0E5A38;
+}
+
+/* RESPONSIVO */
+@media (max-width:860px){
+
+    .wrapper{
+        grid-template-columns:1fr;
+    }
+
+    .hero{
+        display:none;
+    }
+
+    .form-area{
+        padding:35px 25px;
+    }
+
+}
