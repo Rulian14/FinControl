@@ -5,7 +5,6 @@ import com.fincontrol.dto.user.UserResponseDTO;
 
 import jakarta.validation.constraints.NotBlank;
 
-
 public class AuthResponseDTO {
 
     @NotBlank

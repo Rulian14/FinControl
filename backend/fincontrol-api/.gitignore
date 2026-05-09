@@ -4,6 +4,12 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# Ignorar arquivos de configuração com segredos
+src/main/resources/application.properties
+src/main/resources/application.yml
+src/main/resources/application.yaml
+
+
 ### STS ###
 .apt_generated
 .classpath
