@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.fincontrol.model.Usuario;
 
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
@@ -31,8 +32,7 @@ public class jwtService {
         Date expiracao = new Date(agora.getTime() + expiration);
 
         return Jwts.builder()
-                    .subject(usuario.getEmail())
-                    .claim("userId", usuario.getId())
+                    .subject(String.valueOf(usuario.getId()))
                     .issuedAt(agora)
                     .expiration(expiracao)
                     .signWith(getSigningKey())
@@ -46,7 +46,7 @@ public class jwtService {
                 .build()
                 .parseSignedClaims(token);
             return true;
-        } catch (Exception e) {
+        } catch (JwtException | IllegalArgumentException e) {
              return false;
         }
     }

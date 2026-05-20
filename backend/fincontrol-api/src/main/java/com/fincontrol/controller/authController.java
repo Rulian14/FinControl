@@ -1,7 +1,5 @@
 package com.fincontrol.controller;
 
-import java.util.Map;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,16 +32,8 @@ public class authController {
 
     }
 
-    @PostMapping("/test")
-    public String testarToken(@RequestBody Map<String, String> body) {
-        return authservice.test(body.get("token"));
-    }
-    @PostMapping("/testDois")
-    public boolean validarToken(@RequestBody Map<String, String> body){
-        return authservice.testDois(body.get("token"));
-    }
     @GetMapping("/me")
     public void rememerMe(){
+        
     }
-
 }
