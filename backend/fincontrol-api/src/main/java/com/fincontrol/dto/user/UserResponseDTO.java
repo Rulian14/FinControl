@@ -15,9 +15,6 @@ public class UserResponseDTO {
     private long id;
 
     @NotBlank
-    private String nome;
-
-    @NotBlank
     @Email
     private String email;
 

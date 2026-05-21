@@ -1,6 +1,6 @@
 package com.fincontrol.exception;
 
-public class EmailJaRegistradoException extends Exception{
+public class EmailJaRegistradoException extends RuntimeException{
     public EmailJaRegistradoException(String msg){
         super(msg);
     }

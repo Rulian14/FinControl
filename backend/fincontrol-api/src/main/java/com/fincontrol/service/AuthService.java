@@ -3,12 +3,14 @@ package com.fincontrol.service;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.fincontrol.dto.auth.AuthResponseDTO;
 import com.fincontrol.dto.auth.RegisterDTO;
 import com.fincontrol.dto.auth.loginDTO;
+import com.fincontrol.dto.user.UserResponseDTO;
 import com.fincontrol.exception.EmailJaRegistradoException;
 import com.fincontrol.model.Usuario;
 import com.fincontrol.repository.UsuarioRepository;
@@ -30,28 +32,57 @@ public class AuthService {
     }
 
     public AuthResponseDTO registrar(RegisterDTO dto){
-        //colocar TryCatch dps
+
+            verificarEmail(dto.getEmail());
             String senhaHash = passwordEncoder.encode(dto.getSenha());
 
             Usuario usuario = new Usuario(dto.getEmail(), 
                                           senhaHash, 
                                           LocalDateTime.now());
 
-            usuariorepository.save(usuario);
-                                          
+            usuariorepository.save(usuario);                   
             String token = jwtservice.gerarToken(usuario);
             AuthResponseDTO authresponseDTO = new AuthResponseDTO(token, "Bearer", expiration / 1000);
-            return authresponseDTO;
+            return authresponseDTO; 
     }
 
-    public String Login(loginDTO dto){
-        return null;
+    public AuthResponseDTO Login(loginDTO dto){
+        Usuario usuario = usuariorepository.findByEmail(dto.getEmail())
+                                                            .orElseThrow(() -> new BadCredentialsException("Crendecias invalidas"));
+
+        boolean senhaValida = passwordEncoder.matches(dto.getSenha(), usuario.getSenhaHash());
+            if(!senhaValida){
+             throw new BadCredentialsException("Crendecias invalidas");
+            }
+        String token = jwtservice.gerarToken(usuario);
+        AuthResponseDTO authresponseDTO = new AuthResponseDTO(token, "Bearer", expiration / 1000);
+        return authresponseDTO;
+    }
+    public UserResponseDTO obterUsuarioPorToken(String token){
+        if (token == null || !token.startsWith("Bearer ")) {
+            throw new BadCredentialsException("token no formato invalido");
+        }
+        String tokenPuro = token.substring(7);
+
+        if (!jwtservice.validarToken(tokenPuro)) {
+            throw new BadCredentialsException("token expirado.");
+        }
+        String idString = jwtservice.extrairID(tokenPuro);
+        Integer id = Integer.parseInt(idString);
+
+
+        Usuario usuario = usuariorepository.findById(id)
+                                           .orElseThrow(() -> new RuntimeException("Usuário foi engolido pelo vazio."));
+        return new UserResponseDTO(usuario.getId(), usuario.getEmail());
+
     }
 
 
     //Regras de Negocio
-    private boolean verificarEmail(String Email) throws EmailJaRegistradoException{
-        return false;
+    private void verificarEmail(String email) throws EmailJaRegistradoException{
+       if (usuariorepository.existsByEmail(email)) {
+            throw new EmailJaRegistradoException("O endereço de e-mail já está associado a uma conta.");
+        }
     }
 
 }

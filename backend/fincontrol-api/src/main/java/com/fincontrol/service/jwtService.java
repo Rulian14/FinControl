@@ -51,7 +51,7 @@ public class jwtService {
         }
     }
 
-    public String extrairEmail(String token) {
+    public String extrairID(String token) {
         return Jwts.parser()
                 .verifyWith((SecretKey) getSigningKey())
                 .build()

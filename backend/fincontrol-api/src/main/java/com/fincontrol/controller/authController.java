@@ -4,21 +4,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fincontrol.dto.auth.AuthResponseDTO;
 import com.fincontrol.dto.auth.RegisterDTO;
 import com.fincontrol.dto.auth.loginDTO;
+import com.fincontrol.dto.user.UserResponseDTO;
 import com.fincontrol.service.AuthService;
 
 @RestController
 @RequestMapping("/auth")
-public class authController {
+public class AuthController {
 
     private final AuthService authservice;
     
-    public authController(AuthService authservice){
+    public AuthController(AuthService authservice){
         this.authservice = authservice;
     }
     @PostMapping("/register")
@@ -28,12 +30,14 @@ public class authController {
     }
 
     @PostMapping("/login")
-    public void login(@RequestBody loginDTO logar){
-
+    public ResponseEntity<AuthResponseDTO> login(@RequestBody loginDTO dto){
+        AuthResponseDTO response = authservice.Login(dto);
+        return ResponseEntity.status(200).body(response);
     }
 
     @GetMapping("/me")
-    public void rememerMe(){
-        
+    public ResponseEntity<UserResponseDTO> obterUsuarioLogado(@RequestHeader("Authorization") String token){
+        UserResponseDTO response = authservice.obterUsuarioPorToken(token);
+        return ResponseEntity.status(200).body(response);
     }
 }
