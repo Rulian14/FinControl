@@ -21,6 +21,9 @@ public class Usuario {
     @Column(name = "ID_usuario")
     private Integer id;
 
+    @Column(name = "nome", nullable = false, length = 100)
+    private String nome;
+
     @Column(name = "email", nullable = false, length = 255, unique = true)
     private String email;
 
@@ -30,7 +33,8 @@ public class Usuario {
     @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao;
 
-    public Usuario(String email, String senhaHash, LocalDateTime dataCriacao) {
+    public Usuario(String nome, String email, String senhaHash, LocalDateTime dataCriacao) {
+        this.nome = nome;
         this.email = email;
         this.senhaHash = senhaHash;
         this.dataCriacao = dataCriacao;

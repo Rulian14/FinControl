@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fincontrol.dto.auth.AuthResponseDTO;
+import com.fincontrol.dto.auth.LoginDTO;
 import com.fincontrol.dto.auth.RegisterDTO;
-import com.fincontrol.dto.auth.loginDTO;
 import com.fincontrol.dto.user.UserResponseDTO;
 import com.fincontrol.service.AuthService;
 
@@ -30,7 +30,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@RequestBody loginDTO dto){
+    public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginDTO dto){
         AuthResponseDTO response = authservice.Login(dto);
         return ResponseEntity.status(200).body(response);
     }

@@ -11,9 +11,10 @@ import lombok.Getter;
 @AllArgsConstructor
 public class UserResponseDTO {
 
-    @NotBlank
-    private long id;
+    private Integer id;
 
+    private String nome;
+    
     @NotBlank
     @Email
     private String email;

@@ -7,6 +7,9 @@ import lombok.Getter;
 
 @Getter
 public class RegisterDTO {
+    
+    @NotBlank
+    private String nome;
 
     @NotBlank
     @Email

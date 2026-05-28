@@ -8,8 +8,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.fincontrol.dto.auth.AuthResponseDTO;
+import com.fincontrol.dto.auth.LoginDTO;
 import com.fincontrol.dto.auth.RegisterDTO;
-import com.fincontrol.dto.auth.loginDTO;
 import com.fincontrol.dto.user.UserResponseDTO;
 import com.fincontrol.exception.EmailJaRegistradoException;
 import com.fincontrol.model.Usuario;
@@ -22,10 +22,10 @@ public class AuthService {
     private Long expiration;
 
     private final PasswordEncoder passwordEncoder;
-    private final jwtService jwtservice;
+    private final JwtService jwtservice;
     private final UsuarioRepository usuariorepository;
 
-    public AuthService(PasswordEncoder passwordEncoder, jwtService jwtservice, UsuarioRepository usuariorepository) {
+    public AuthService(PasswordEncoder passwordEncoder, JwtService jwtservice, UsuarioRepository usuariorepository) {
         this.passwordEncoder = passwordEncoder;
         this.jwtservice = jwtservice;
         this.usuariorepository = usuariorepository;
@@ -36,7 +36,8 @@ public class AuthService {
             verificarEmail(dto.getEmail());
             String senhaHash = passwordEncoder.encode(dto.getSenha());
 
-            Usuario usuario = new Usuario(dto.getEmail(), 
+            Usuario usuario = new Usuario(dto.getNome(),
+                                          dto.getEmail(), 
                                           senhaHash, 
                                           LocalDateTime.now());
 
@@ -46,7 +47,7 @@ public class AuthService {
             return authresponseDTO; 
     }
 
-    public AuthResponseDTO Login(loginDTO dto){
+    public AuthResponseDTO Login(LoginDTO dto){
         Usuario usuario = usuariorepository.findByEmail(dto.getEmail())
                                                             .orElseThrow(() -> new BadCredentialsException("Crendecias invalidas"));
 
@@ -73,7 +74,7 @@ public class AuthService {
 
         Usuario usuario = usuariorepository.findById(id)
                                            .orElseThrow(() -> new RuntimeException("Usuário foi engolido pelo vazio."));
-        return new UserResponseDTO(usuario.getId(), usuario.getEmail());
+        return new UserResponseDTO( usuario.getId(), usuario.getNome(), usuario.getEmail());
 
     }
 
