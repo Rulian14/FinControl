@@ -9,6 +9,7 @@ import lombok.Getter;
 public class RegisterDTO {
     
     @NotBlank
+    @Size(max=100, message="voce é por acaso o Laurence Gregory Watkins?")
     private String nome;
 
     @NotBlank
@@ -16,6 +17,6 @@ public class RegisterDTO {
     private String email;
 
     @NotBlank
-    @Size(min=10)
+    @Size(min=10, max=15)
     private String senha;
 }

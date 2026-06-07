@@ -3,8 +3,11 @@ package com.fincontrol.controller.advice;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -17,13 +20,13 @@ import com.fincontrol.exception.EmailJaRegistradoException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(EmailJaRegistradoException.class)
     public ResponseEntity<ProblemDetail> handleEmailJaRegistrado(EmailJaRegistradoException ex) {
         
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-            HttpStatus.CONFLICT, 
-            ex.getMessage()
+            HttpStatus.CONFLICT, ex.getMessage()
         );
         
         problemDetail.setTitle("Conflito de Cadastro");
@@ -34,7 +37,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ProblemDetail> handleBadCredentials(BadCredentialsException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-            HttpStatus.UNAUTHORIZED, ex.getMessage()
+            HttpStatus.UNAUTHORIZED, "E-mail ou senha incorretos."
         );
         problemDetail.setTitle("Falha na Autenticação");
         problemDetail.setType(URI.create("https://api.fincontrol.com/errors/credenciais-invalidas"));
@@ -43,37 +46,40 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
     }
 
-    // 3. REQUISIÇÃO RUIM (400) - Quando o cliente manda dados inválidos (Validação do Bean Validation)
+   
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handleValidationErrors(MethodArgumentNotValidException ex) {
-        // Coletamos todos os erros de campos e transformamos em uma string melancólica
-        String erros = ex.getBindingResult().getFieldErrors().stream()
-            .map(error -> error.getField() + ": " + error.getDefaultMessage())
-            .collect(Collectors.joining(", "));
+        var erros = ex.getBindingResult()
+                      .getFieldErrors()
+                      .stream()
+                      .collect(Collectors.toMap(error -> error.getField(), error -> error.getDefaultMessage(), (v1, v2) -> v1 + ", " + v2));
+                
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
             HttpStatus.BAD_REQUEST, "Dados inválidos fornecidos na requisição."
         );
         problemDetail.setTitle("Erro de Validação");
         problemDetail.setType(URI.create("https://api.fincontrol.com/errors/validacao-campos"));
-        problemDetail.setProperty("erros", erros); // Adiciona a lista de campos errados no JSON
+        problemDetail.setProperty("erros", erros);
         problemDetail.setProperty("timestamp", Instant.now());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
     }
 
-    // 4. O CATCH-ALL (500) - O último guardião para erros inesperados do sistema
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleGeneralException(Exception ex) {
-        // IMPORTANTE: Aqui você pode usar um logger para salvar a stack trace no arquivo de log do servidor,
-        // mas para o cliente, nós escondemos o rastro do sangue.
-        
+
+        UUID uuid = UUID.randomUUID();
+        log.error("Erro inesperado[ID: {}]", uuid, ex);
+       
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
             HttpStatus.INTERNAL_SERVER_ERROR, 
-            "Ocorreu um erro interno inesperado. Nossos corvos já foram enviados para investigar."
-        );
+            "Ocorreu um erro interno inesperado. Nossos corvos já foram enviados para investigar.");
+
         problemDetail.setTitle("Erro Interno do Servidor");
         problemDetail.setType(URI.create("https://api.fincontrol.com/errors/erro-interno"));
+        problemDetail.setProperty("erro_id", uuid);
         problemDetail.setProperty("timestamp", Instant.now());
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problemDetail);

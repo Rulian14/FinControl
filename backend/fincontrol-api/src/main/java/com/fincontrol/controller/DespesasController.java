@@ -18,6 +18,8 @@ import com.fincontrol.dto.despesa.DespesaRequestDTO;
 import com.fincontrol.dto.despesa.DespesaResponseDTO;
 import com.fincontrol.service.DespesaService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/despesas")
 public class DespesasController {
@@ -35,7 +37,7 @@ public class DespesasController {
     }
 
     @PostMapping
-    public ResponseEntity<DespesaResponseDTO> CadastrarDespesas(@RequestBody DespesaRequestDTO dto, Authentication authentication){
+    public ResponseEntity<DespesaResponseDTO> CadastrarDespesas(@Valid @RequestBody DespesaRequestDTO dto, Authentication authentication){
         Integer idUsuarioLogado = Integer.parseInt(authentication.getName());
 
         return ResponseEntity.status(HttpStatus.CREATED)

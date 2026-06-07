@@ -18,6 +18,8 @@ import com.fincontrol.dto.receita.ReceitaRequestDTO;
 import com.fincontrol.dto.receita.ReceitaResponseDTO;
 import com.fincontrol.service.ReceitaService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/receitas")
 public class ReceitasController{
@@ -35,7 +37,7 @@ public class ReceitasController{
     }
 
     @PostMapping
-    public ResponseEntity<ReceitaResponseDTO> CadastrarReceita(@RequestBody ReceitaRequestDTO dto, Authentication authentication){
+    public ResponseEntity<ReceitaResponseDTO> CadastrarReceita(@Valid @RequestBody ReceitaRequestDTO dto, Authentication authentication){
         Integer idUsuarioLogado = Integer.parseInt(authentication.getName());
         
         return ResponseEntity.status(HttpStatus.CREATED)

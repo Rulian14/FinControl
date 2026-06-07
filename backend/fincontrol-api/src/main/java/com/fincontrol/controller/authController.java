@@ -14,6 +14,8 @@ import com.fincontrol.dto.auth.RegisterDTO;
 import com.fincontrol.dto.user.UserResponseDTO;
 import com.fincontrol.service.AuthService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -24,19 +26,19 @@ public class AuthController {
         this.authservice = authservice;
     }
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDTO> register(@RequestBody RegisterDTO dto) {
+    public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegisterDTO dto) {
         AuthResponseDTO response = authservice.registrar(dto);
         return ResponseEntity.status(201).body(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginDTO dto){
+    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginDTO dto){
         AuthResponseDTO response = authservice.Login(dto);
         return ResponseEntity.status(200).body(response);
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponseDTO> obterUsuarioLogado(@RequestHeader("Authorization") String token){
+    public ResponseEntity<UserResponseDTO> obterUsuarioLogado(@Valid @RequestHeader("Authorization") String token){
         UserResponseDTO response = authservice.obterUsuarioPorToken(token);
         return ResponseEntity.status(200).body(response);
     }
