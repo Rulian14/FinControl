@@ -1,5 +1,7 @@
 package com.fincontrol.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -25,4 +27,12 @@ public class Categoria {
 
     @Column(nullable = false, length = 10)
     private String tipo;
+
+    public interface CategoriaTotalProjection {
+
+    String getNomeCategoria();
+    BigDecimal getValorTotal();
+
+    }
+
 }
