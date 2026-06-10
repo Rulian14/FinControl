@@ -34,10 +34,7 @@ CREATE TABLE categoria (
 
     CONSTRAINT chk_categoria_tipo
     CHECK (
-        tipo IN (
-            'RECEITA',
-            'DESPESA'
-        )
+        tipo IN ('RECEITA', 'DESPESA')
     )
 );
 
@@ -113,11 +110,21 @@ CREATE TABLE meta_financeira (
 
     id_meta INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
-    descricao TEXT NOT NULL,
+    id_usuario INT NOT NULL,
+
+    nome VARCHAR(200) NOT NULL,
 
     valor_objetivo NUMERIC(10,2) NOT NULL,
 
-    id_usuario INT NOT NULL,
+    valor_contribuido NUMERIC(10,2) NOT NULL DEFAULT 0,
+
+    data_limite DATE NOT NULL,
+
+    CONSTRAINT chk_meta_valor_objetivo
+    CHECK (valor_objetivo >= 0),
+
+    CONSTRAINT chk_meta_valor_contribuido
+    CHECK (valor_contribuido >= 0),
 
     CONSTRAINT fk_meta_usuario
     FOREIGN KEY (id_usuario)
