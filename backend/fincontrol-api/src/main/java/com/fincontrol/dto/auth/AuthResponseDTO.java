@@ -1,19 +1,22 @@
 package com.fincontrol.dto.auth;
 
 
-import jakarta.validation.constraints.NotBlank;
+import com.fincontrol.dto.user.UserResponseDTO;
+
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 @AllArgsConstructor
 @Data
+@Builder
 public class AuthResponseDTO {
 
-    @NotBlank
     private String token;
     
-    @NotBlank
     private String tipo;
 
     private long expiration;
+
+    private UserResponseDTO userResponseDTO;
 }

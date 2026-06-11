@@ -39,13 +39,13 @@ public class Despesa {
     private String recorrencia; // 'FIXA' ou 'TEMPORARIA'
 
     @Column(name = "id_usuario", nullable = false)
-    private Integer idUsuario;
+    private Long idUsuario;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_categoria", nullable = false)
     private Categoria categoria;
 
-    public Despesa(String descricao, BigDecimal valor, LocalDateTime data, String recorrencia, Integer idUsuario, Categoria categoria) {
+    public Despesa(String descricao, BigDecimal valor, LocalDateTime data, String recorrencia, Long idUsuario, Categoria categoria) {
     this.descricao = descricao;
     this.valor = valor;
     this.data = data;

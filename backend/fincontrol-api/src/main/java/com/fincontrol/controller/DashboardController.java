@@ -27,7 +27,6 @@ public class DashboardController {
         this.dashBoardService = dashBoardService;
     }
     @GetMapping
-  
     public ResponseEntity<DashboardDTO> getDashboard(Authentication authentication, @RequestParam  @Min(2000)  int ano, @RequestParam  @Min(1) @Max(12) int mes){
         Long idUsuario = Long.parseLong(authentication.getName());
         return ResponseEntity.ok(dashBoardService.obterDashboardDTO(idUsuario, ano, mes));

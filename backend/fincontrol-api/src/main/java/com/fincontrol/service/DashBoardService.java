@@ -6,15 +6,16 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fincontrol.dto.board.CategoriaTotalDTO;
 import com.fincontrol.dto.board.DashboardDTO;
+import com.fincontrol.dto.board.LancamentoDashboardProjection;
 import com.fincontrol.dto.board.UltimosLancamentosDTO;
-import com.fincontrol.model.Categoria;
-import com.fincontrol.model.Despesa;
-import com.fincontrol.model.Receita;
 import com.fincontrol.repository.DespesaRepository;
 import com.fincontrol.repository.ReceitaRepository;
 
@@ -32,21 +33,24 @@ public class DashBoardService {
     public DashboardDTO obterDashboardDTO(Long idUsuario, Integer ano, Integer mes){
 
         LocalDate inicioMes = LocalDate.of(ano, mes, 1);
-        LocalDate fimMes = inicioMes.withDayOfMonth(inicioMes.lengthOfMonth());
-
         LocalDateTime inicio = inicioMes.atStartOfDay();
-        LocalDateTime fim = fimMes.atTime(23, 59, 59, 999999999);
+        LocalDateTime fim = inicioMes.plusMonths(1).atStartOfDay();
 
-        BigDecimal despesa = despesaRepository.sumDespesa(idUsuario, inicio, fim);
-        BigDecimal receita = receitaRepository.sumReceita(idUsuario, inicio, fim);
+        List<LancamentoDashboardProjection> receitArr =
+                receitaRepository.buscarReceitasDashboard(idUsuario, inicio, fim);
 
-        BigDecimal despesaTotal = despesa == null ? BigDecimal.ZERO : despesa;
-        BigDecimal receitaTotal = receita == null ? BigDecimal.ZERO : receita;
-        
+        List<LancamentoDashboardProjection> despesArr =
+                despesaRepository.buscarDespesasDashboard(idUsuario, inicio, fim);
+
+        BigDecimal despesaTotal = despesArr.stream()
+                                            .map(LancamentoDashboardProjection::getValor)
+                                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal receitaTotal = receitArr.stream()
+                                            .map(LancamentoDashboardProjection::getValor)
+                                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         BigDecimal saldo = receitaTotal.subtract(despesaTotal);
-
-        List<Receita> receitArr = receitaRepository.findTop5ByIdUsuarioAndDataBetweenOrderByDataDesc(idUsuario, inicio, fim);
-        List<Despesa> despesArr = despesaRepository.findTop5ByIdUsuarioAndDataBetweenOrderByDataDesc(idUsuario, inicio, fim);
 
         List<UltimosLancamentosDTO> ultLancamentoList = new ArrayList<>();
         
@@ -56,7 +60,7 @@ public class DashBoardService {
                     .descricao(d.getDescricao())
                     .valor(d.getValor())
                     .data(d.getData())
-                    .categoria(d.getCategoria() != null ? d.getCategoria().getNome() : "Sem Categoria")
+                    .categoria(d.getCategoria())
                     .recorrencia(d.getRecorrencia())
                     .tipo("DESPESA")
                     .build()
@@ -68,7 +72,7 @@ public class DashBoardService {
                     .descricao(r.getDescricao())
                     .valor(r.getValor())
                     .data(r.getData())
-                    .categoria(r.getCategoria() != null ? r.getCategoria().getNome() : "Sem Categoria")
+                    .categoria(r.getCategoria())
                     .recorrencia(r.getRecorrencia())
                     .tipo("RECEITA")
                     .build()
@@ -76,11 +80,11 @@ public class DashBoardService {
         );
         ultLancamentoList = ultLancamentoList.stream()
         .sorted(Comparator.comparing(UltimosLancamentosDTO::getData).reversed())
-        .limit(5)
         .toList();
+        
 
-        List<Categoria.CategoriaTotalProjection> despesasPorCat = despesaRepository.somarDespesasPorCategoria(idUsuario, inicio, fim);
-        List<Categoria.CategoriaTotalProjection> receitasPorCat = receitaRepository.somarReceitaPorCategoria(idUsuario, inicio, fim);
+        List<CategoriaTotalDTO> despesasPorCat = somarPorCategoria(despesArr);
+        List<CategoriaTotalDTO> receitasPorCat = somarPorCategoria(receitArr);
 
 
         return DashboardDTO.builder()
@@ -95,4 +99,19 @@ public class DashBoardService {
             .build();
     }
 
+    private List<CategoriaTotalDTO> somarPorCategoria(List<LancamentoDashboardProjection> lancamentos) {
+        Map<String, BigDecimal> totaisPorCategoria = lancamentos.stream()
+                .collect(Collectors.groupingBy(
+                        LancamentoDashboardProjection::getCategoria,
+                        Collectors.reducing(
+                                BigDecimal.ZERO,
+                                LancamentoDashboardProjection::getValor,
+                                BigDecimal::add
+                        )
+                ));
+
+        return totaisPorCategoria.entrySet().stream()
+                .map(entry -> new CategoriaTotalDTO(entry.getKey(), entry.getValue()))
+                .toList();
+    }
 }

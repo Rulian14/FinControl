@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.fincontrol.exception.EmailJaRegistradoException;
+import com.fincontrol.exception.ResourceNotFoundException;
+import com.fincontrol.exception.TelefoneJaCadastradoException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -34,6 +36,33 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("timestamp", Instant.now());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
     }
+    
+    @ExceptionHandler(TelefoneJaCadastradoException.class)
+    public ResponseEntity<ProblemDetail> handleTelefoneJaRegistrado(TelefoneJaCadastradoException ex){
+
+         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.CONFLICT, ex.getMessage()
+        );
+        
+        problemDetail.setTitle("Conflito de Cadastro");
+        problemDetail.setType(URI.create("https://api.fincontrol.com/errors/Telefone-duplicado"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleResourceNotFoundException(ResourceNotFoundException ex){
+         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.NOT_FOUND, ex.getMessage()
+        );
+
+        problemDetail.setTitle("Item não Encotrado");
+        problemDetail.setType(URI.create("https://api.fincontrol.com/errors/recurso-nao-encontrado"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ProblemDetail> handleBadCredentials(BadCredentialsException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -65,8 +94,9 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
     }
-
-
+    
+    
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleGeneralException(Exception ex) {
 

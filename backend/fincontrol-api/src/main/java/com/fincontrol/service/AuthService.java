@@ -1,6 +1,7 @@
 package com.fincontrol.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -12,8 +13,11 @@ import com.fincontrol.dto.auth.LoginDTO;
 import com.fincontrol.dto.auth.RegisterDTO;
 import com.fincontrol.dto.user.UserResponseDTO;
 import com.fincontrol.exception.EmailJaRegistradoException;
+import com.fincontrol.model.TelefoneUsuario;
 import com.fincontrol.model.Usuario;
+import com.fincontrol.repository.TelefoneUserRepository;
 import com.fincontrol.repository.UsuarioRepository;
+
 
 @Service
 public class AuthService {
@@ -24,11 +28,14 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtservice;
     private final UsuarioRepository usuariorepository;
+    private final TelefoneUserRepository telefoneUserRepository;
 
-    public AuthService(PasswordEncoder passwordEncoder, JwtService jwtservice, UsuarioRepository usuariorepository) {
+    public AuthService(PasswordEncoder passwordEncoder, JwtService jwtservice, UsuarioRepository usuariorepository, TelefoneUserRepository telefoneUserRepository) {
         this.passwordEncoder = passwordEncoder;
         this.jwtservice = jwtservice;
         this.usuariorepository = usuariorepository;
+        this.telefoneUserRepository = telefoneUserRepository;
+
     }
 
     public AuthResponseDTO registrar(RegisterDTO dto){
@@ -43,9 +50,9 @@ public class AuthService {
 
             usuariorepository.save(usuario);                   
             String token = jwtservice.gerarToken(usuario);
-            AuthResponseDTO authresponseDTO = new AuthResponseDTO(token, "Bearer", expiration / 1000);
-            return authresponseDTO; 
-    }
+
+            return converterParaResponseDTO(token, usuario);
+            }
 
     public AuthResponseDTO Login(LoginDTO dto){
         Usuario usuario = usuariorepository.findByEmail(dto.getEmail())
@@ -56,26 +63,15 @@ public class AuthService {
              throw new BadCredentialsException("Crendecias invalidas");
             }
         String token = jwtservice.gerarToken(usuario);
-        AuthResponseDTO authresponseDTO = new AuthResponseDTO(token, "Bearer", expiration / 1000);
-        return authresponseDTO;
+
+        return converterParaResponseDTO(token, usuario);
     }
-    public UserResponseDTO obterUsuarioPorToken(String token){
-        if (token == null || !token.startsWith("Bearer ")) {
-            throw new BadCredentialsException("token no formato invalido");
-        }
-        String tokenPuro = token.substring(7);
-
-        if (!jwtservice.validarToken(tokenPuro)) {
-            throw new BadCredentialsException("token expirado.");
-        }
-        String idString = jwtservice.extrairID(tokenPuro);
-        Integer id = Integer.parseInt(idString);
-
-
-        Usuario usuario = usuariorepository.findById(id)
+    //arrumar dps
+    public UserResponseDTO obterUsuarioPorToken(Long idUsuario){
+        Usuario usuario = usuariorepository.findById(idUsuario)
                                            .orElseThrow(() -> new RuntimeException("Usuário foi engolido pelo vazio."));
-        return new UserResponseDTO( usuario.getId(), usuario.getNome(), usuario.getEmail());
-
+                            
+        return converterParaResponseDTO(usuario);
     }
 
 
@@ -86,4 +82,23 @@ public class AuthService {
         }
     }
 
+
+    private UserResponseDTO converterParaResponseDTO(Usuario usuario){
+        List<TelefoneUsuario.telefoneProjection> telefones = telefoneUserRepository.findByIdUsuario(usuario.getId());       
+        return UserResponseDTO.builder()
+                              .email(usuario.getEmail())
+                              .nome(usuario.getNome())
+                              .telefones(telefones)
+                              .build();
+    }
+
+    private AuthResponseDTO converterParaResponseDTO(String token, Usuario usuario){
+        List<TelefoneUsuario.telefoneProjection> telefones = telefoneUserRepository.findByIdUsuario(usuario.getId());  
+        return AuthResponseDTO.builder()
+                              .token(token)
+                              .tipo("Bearer")
+                              .expiration(expiration / 1000)
+                              .userResponseDTO(converterParaResponseDTO(usuario))
+                              .build();
+    }
 }

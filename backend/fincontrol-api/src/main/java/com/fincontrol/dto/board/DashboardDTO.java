@@ -3,8 +3,6 @@ package com.fincontrol.dto.board;
 import java.math.BigDecimal;
 import java.util.List;
 
-import com.fincontrol.model.Categoria;
-
 import lombok.Builder;
 import lombok.Data;
 
@@ -18,6 +16,6 @@ public class DashboardDTO {
     private int ano;
     private int mes;
 
-    private List<Categoria.CategoriaTotalProjection> despesasPorCategoria;
-    private List<Categoria.CategoriaTotalProjection> receitasPorCategoria;
+    private List<CategoriaTotalDTO> despesasPorCategoria;
+    private List<CategoriaTotalDTO> receitasPorCategoria;
 }

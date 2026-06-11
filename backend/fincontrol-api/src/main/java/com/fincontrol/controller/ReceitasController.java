@@ -32,13 +32,13 @@ public class ReceitasController{
 
     @GetMapping
     public ResponseEntity<List<ReceitaResponseDTO>> ListarReceitas(Authentication authentication){
-        Integer idUsuarioLogado = Integer.parseInt(authentication.getName());
+        Long idUsuarioLogado = Long.parseLong(authentication.getName());
         return ResponseEntity.ok(receitaService.listarTodas(idUsuarioLogado));
     }
 
     @PostMapping
     public ResponseEntity<ReceitaResponseDTO> CadastrarReceita(@Valid @RequestBody ReceitaRequestDTO dto, Authentication authentication){
-        Integer idUsuarioLogado = Integer.parseInt(authentication.getName());
+        Long idUsuarioLogado = Long.parseLong(authentication.getName());
         
         return ResponseEntity.status(HttpStatus.CREATED)
                              .body(receitaService.criar(dto, idUsuarioLogado));
@@ -51,7 +51,7 @@ public class ReceitasController{
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> DeletarReceita( @PathVariable Long id, Authentication authentication){
-        Integer idUsuarioLogado = Integer.parseInt(authentication.getName());
+        Long idUsuarioLogado = Long.parseLong(authentication.getName());
         receitaService.deletar(id, idUsuarioLogado);
         return ResponseEntity.noContent().build();
     }

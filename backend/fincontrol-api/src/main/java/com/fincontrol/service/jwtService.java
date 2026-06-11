@@ -9,6 +9,7 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.fincontrol.exception.TokenInvalidoException;
 import com.fincontrol.model.Usuario;
 
 import io.jsonwebtoken.JwtException;
@@ -39,24 +40,20 @@ public class JwtService {
                     .compact();
     }
 
-    public boolean validarToken(String token) {
+    public String extrairID(String token) {
         try {
-            Jwts.parser()
-                .verifyWith((SecretKey) getSigningKey())
-                .build()
-                .parseSignedClaims(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-             return false;
+            return Jwts.parser()
+                    .verifyWith((SecretKey) getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getSubject();
+
+        } catch (JwtException | IllegalArgumentException ex) {
+            throw new TokenInvalidoException("Token inválido ou expirado", ex);
         }
     }
 
-    public String extrairID(String token) {
-        return Jwts.parser()
-                .verifyWith((SecretKey) getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
-    }
 }
+
+    

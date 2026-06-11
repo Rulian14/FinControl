@@ -19,7 +19,7 @@ public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID_usuario")
-    private Integer id;
+    private Long id;
 
     @Column(name = "nome", nullable = false, length = 100)
     private String nome;
@@ -32,6 +32,8 @@ public class Usuario {
 
     @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao;
+
+    
 
     public Usuario(String nome, String email, String senhaHash, LocalDateTime dataCriacao) {
         this.nome = nome;

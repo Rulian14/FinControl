@@ -32,26 +32,28 @@ public class DespesasController {
 
     @GetMapping
     public ResponseEntity<List<DespesaResponseDTO>> ListarDespesas(Authentication authentication){
-        Integer idUsuarioLogado = Integer.parseInt(authentication.getName());
+        Long idUsuarioLogado = Long.parseLong(authentication.getName());
         return ResponseEntity.ok(despesaService.listarTodas(idUsuarioLogado));
     }
 
     @PostMapping
     public ResponseEntity<DespesaResponseDTO> CadastrarDespesas(@Valid @RequestBody DespesaRequestDTO dto, Authentication authentication){
-        Integer idUsuarioLogado = Integer.parseInt(authentication.getName());
+        Long idUsuarioLogado = Long.parseLong(authentication.getName());
 
         return ResponseEntity.status(HttpStatus.CREATED)
                              .body(despesaService.criar(dto, idUsuarioLogado));
     }
+   
     @PutMapping("/{id}")
     public ResponseEntity<DespesaResponseDTO> AtualizarDespesa(
         @PathVariable Long id,
         @RequestBody DespesaRequestDTO dto){
         return ResponseEntity.ok().build();
     }
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> DeletarDespesa(@PathVariable Long id, Authentication authentication){
-        Integer idUsuarioLogado = Integer.parseInt(authentication.getName());
+        Long idUsuarioLogado = Long.parseLong(authentication.getName());
         despesaService.deletar(id, idUsuarioLogado);
         return ResponseEntity.noContent().build();
     }

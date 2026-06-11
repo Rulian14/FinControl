@@ -25,7 +25,7 @@ public class ReceitaService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReceitaResponseDTO> listarTodas(Integer idUsuarioAutenticado){
+    public List<ReceitaResponseDTO> listarTodas(Long idUsuarioAutenticado){
         return receitaRepository.findByIdUsuario(Long.valueOf(idUsuarioAutenticado))
                                 .stream()
                                 .map(this::converterParaResponseDTO)
@@ -33,7 +33,7 @@ public class ReceitaService {
     }
 
     @Transactional
-    public ReceitaResponseDTO criar(ReceitaRequestDTO dto, Integer idUsuarioAutenticado){
+    public ReceitaResponseDTO criar(ReceitaRequestDTO dto, Long idUsuarioAutenticado){
         Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
                 .orElseThrow(() -> new IllegalArgumentException("A categoria informada não habita este sistema."));
 
@@ -55,7 +55,7 @@ public class ReceitaService {
     }
 
     @Transactional
-    public void deletar(Long id, Integer idUsuarioAutenticado){
+    public void deletar(Long id, Long idUsuarioAutenticado){
         Receita receita = receitaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Receita não encontrada."));
 

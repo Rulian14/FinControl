@@ -6,8 +6,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fincontrol.dto.despesa.DespesaResponseDTO;
 import com.fincontrol.dto.despesa.DespesaRequestDTO;
+import com.fincontrol.dto.despesa.DespesaResponseDTO;
 import com.fincontrol.model.Categoria;
 import com.fincontrol.model.Despesa;
 import com.fincontrol.repository.CategoriaRepository;
@@ -25,7 +25,7 @@ public class DespesaService {
     }
 
     @Transactional(readOnly = true)
-    public List<DespesaResponseDTO> listarTodas(Integer idUsuarioAutenticado){
+    public List<DespesaResponseDTO> listarTodas(Long idUsuarioAutenticado){
         return despesaRepository.findByIdUsuario(Long.valueOf(idUsuarioAutenticado))
                                 .stream()
                                 .map(this::converterParaResponseDTO)
@@ -33,7 +33,7 @@ public class DespesaService {
     }
 
     @Transactional
-    public DespesaResponseDTO criar(DespesaRequestDTO dto, Integer idUsuarioAutenticado){
+    public DespesaResponseDTO criar(DespesaRequestDTO dto, Long idUsuarioAutenticado){
         Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
                 .orElseThrow(() -> new IllegalArgumentException("A categoria informada não habita este sistema."));
 
@@ -44,6 +44,7 @@ public class DespesaService {
             dto.getDescricao(),
             dto.getValor(),
             dto.getData(),
+            //ARRUMAR URGENTE
             dto.getRecorrencia(),
             idUsuarioAutenticado,
             categoria);
@@ -52,7 +53,8 @@ public class DespesaService {
         return converterParaResponseDTO(despesaSalva);
     }
 
-    public void deletar(Long id, Integer idUsuarioAutenticado){
+    
+    public void deletar(Long id, Long idUsuarioAutenticado){
         Despesa despesa = despesaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("despesa não encontrada."));
 
