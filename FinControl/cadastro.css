@@ -119,17 +119,17 @@ input:focus{
 
 /* BOTÃO */
 button{
-  width:100%;
-  padding:14px;
-  margin-top:18px;
-  border:none;
-  border-radius:14px;
-  background:var(--primary);
-  color:white;
-  font-size:16px;
-  font-weight:700;
-  cursor:pointer;
-  transition:.2s;
+    width:100%;
+    padding:14px;
+    margin-top:20px; /* mesmo espaço do style.css */
+    border:none;
+    border-radius:14px;
+    background:var(--primary);
+    color:white;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    transition:.2s;
 }
 
 button:hover{
