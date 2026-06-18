@@ -7,8 +7,7 @@ CREATE TABLE usuario (
 
     senha_hash VARCHAR(255) NOT NULL,
 
-    data_criacao TIMESTAMP NOT NULL
-    DEFAULT CURRENT_TIMESTAMP
+    data_criacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE telefone_usuario (
@@ -19,13 +18,12 @@ CREATE TABLE telefone_usuario (
     id_usuario INT NOT NULL,
 
     CONSTRAINT fk_telefone_usuario
-    FOREIGN KEY (id_usuario)
-    REFERENCES usuario(id_usuario)
-    ON DELETE CASCADE
+        FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE categoria (
-
     id_categoria INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     nome VARCHAR(100) NOT NULL,
@@ -33,13 +31,10 @@ CREATE TABLE categoria (
     tipo VARCHAR(10) NOT NULL,
 
     CONSTRAINT chk_categoria_tipo
-    CHECK (
-        tipo IN ('RECEITA', 'DESPESA')
-    )
+        CHECK (tipo IN ('RECEITA', 'DESPESA'))
 );
 
 CREATE TABLE receita (
-
     id_receita INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     descricao TEXT NOT NULL,
@@ -55,25 +50,19 @@ CREATE TABLE receita (
     id_categoria INT NOT NULL,
 
     CONSTRAINT chk_receita_recorrencia
-    CHECK (
-        recorrencia IN (
-            'FIXA',
-            'TEMPORARIA'
-        )
-    ),
+        CHECK (recorrencia IN ('FIXA', 'TEMPORARIA')),
 
     CONSTRAINT fk_receita_usuario
-    FOREIGN KEY (id_usuario)
-    REFERENCES usuario(id_usuario)
-    ON DELETE CASCADE,
+        FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario)
+        ON DELETE CASCADE,
 
     CONSTRAINT fk_receita_categoria
-    FOREIGN KEY (id_categoria)
-    REFERENCES categoria(id_categoria)
+        FOREIGN KEY (id_categoria)
+        REFERENCES categoria(id_categoria)
 );
 
 CREATE TABLE despesa (
-
     id_despesa INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     descricao TEXT NOT NULL,
@@ -84,30 +73,29 @@ CREATE TABLE despesa (
 
     recorrencia VARCHAR(20) NOT NULL,
 
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDENTE',
+
     id_usuario INT NOT NULL,
 
     id_categoria INT NOT NULL,
 
     CONSTRAINT chk_despesa_recorrencia
-    CHECK (
-        recorrencia IN (
-            'FIXA',
-            'TEMPORARIA'
-        )
-    ),
+        CHECK (recorrencia IN ('FIXA', 'TEMPORARIA')),
+
+    CONSTRAINT chk_despesa_status
+        CHECK (status IN ('AGENDADA', 'PENDENTE', 'PAGA')),
 
     CONSTRAINT fk_despesa_usuario
-    FOREIGN KEY (id_usuario)
-    REFERENCES usuario(id_usuario)
-    ON DELETE CASCADE,
+        FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario)
+        ON DELETE CASCADE,
 
     CONSTRAINT fk_despesa_categoria
-    FOREIGN KEY (id_categoria)
-    REFERENCES categoria(id_categoria)
+        FOREIGN KEY (id_categoria)
+        REFERENCES categoria(id_categoria)
 );
 
 CREATE TABLE meta_financeira (
-
     id_meta INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     id_usuario INT NOT NULL,
@@ -121,13 +109,13 @@ CREATE TABLE meta_financeira (
     data_limite DATE NOT NULL,
 
     CONSTRAINT chk_meta_valor_objetivo
-    CHECK (valor_objetivo >= 0),
+        CHECK (valor_objetivo >= 0),
 
     CONSTRAINT chk_meta_valor_contribuido
-    CHECK (valor_contribuido >= 0),
+        CHECK (valor_contribuido >= 0),
 
     CONSTRAINT fk_meta_usuario
-    FOREIGN KEY (id_usuario)
-    REFERENCES usuario(id_usuario)
-    ON DELETE CASCADE
+        FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario)
+        ON DELETE CASCADE
 );
