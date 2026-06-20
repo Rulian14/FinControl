@@ -10,7 +10,9 @@ import com.fincontrol.dto.user.TelefoneDTO;
 import com.fincontrol.dto.user.TelefoneResponseDTO;
 import com.fincontrol.dto.user.UserResponseDTO;
 import com.fincontrol.dto.user.UserUpdateDTO;
+import com.fincontrol.dto.user.UsuarioDeletarDTO;
 import com.fincontrol.exception.EmailJaRegistradoException;
+import com.fincontrol.exception.LimiteTelefoneCadastradosException;
 import com.fincontrol.exception.ResourceNotFoundException;
 import com.fincontrol.exception.TelefoneJaCadastradoException;
 import com.fincontrol.model.TelefoneUsuario;
@@ -35,8 +37,12 @@ public class UsuarioService {
     
     @Transactional
     public TelefoneResponseDTO cadastrarTelefone(Long idUsuario, TelefoneDTO dto){
-        TelefoneUsuario telefoneUsuario = new TelefoneUsuario(dto.getTelefone(), 
-                                                              idUsuario);
+        if(telefoneUserRepository.countByUsuarioId(idUsuario) >= 2){
+            throw new LimiteTelefoneCadastradosException("Limite máximo de 2 telefones atingido.");
+        }
+
+        Usuario usuario = usuarioRepository.getReferenceById(idUsuario);
+        TelefoneUsuario telefoneUsuario = new TelefoneUsuario(dto.getTelefone(), usuario);
 
         verificarTelefone(dto.getTelefone());
         telefoneUserRepository.save(telefoneUsuario);
@@ -45,14 +51,21 @@ public class UsuarioService {
 
     @Transactional
     public TelefoneResponseDTO atualizarTelefone(Long idUsuario, Long id, TelefoneDTO dto){
-        TelefoneUsuario telefoneUsuario = telefoneUserRepository.findByIdAndIdUsuario(id, idUsuario)
+        TelefoneUsuario telefoneUsuario = telefoneUserRepository.findByIdAndUsuarioId(id, idUsuario)
                                                                 .orElseThrow(() -> new ResourceNotFoundException("Numero não encontrado"));
        
         verificarTelefoneParaAtualizacao(dto.getTelefone(), id);
         telefoneUsuario.setTelefone(dto.getTelefone());
         return TelefoneResponseDTO.builder().telefone(telefoneUsuario.getTelefone()).id(telefoneUsuario.getId()).build();                                     
     }
-   
+    
+    @Transactional
+    public void deletarTelefone(Long idUsuario, Long id){
+        TelefoneUsuario telefoneUsuario = telefoneUserRepository.findByIdAndUsuarioId(id, idUsuario)
+                                                                .orElseThrow(() -> new ResourceNotFoundException("Numero não encontrado"));
+        telefoneUserRepository.delete(telefoneUsuario);
+    }
+
     @Transactional
     public UserResponseDTO atualizarDados(Long idUsuario, UserUpdateDTO dto){
         Usuario usuario = usuarioRepository.findById(idUsuario)
@@ -91,12 +104,21 @@ public class UsuarioService {
             }
 
         }
-
         return converterParaResponseDTO(usuario);
-
     }
    
-    //tenho q deixar esse metodo publico no AuthService e apenas injetar, para evitar logica duplicada
+    public void deletarUsuario(Long idUsuario, UsuarioDeletarDTO dto){
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                                           .orElseThrow(() -> new ResourceNotFoundException("Usuario não encontrado"));
+
+        boolean senhaValida = passwordEncoder.matches(dto.getSenha(), usuario.getSenhaHash());
+        if(!senhaValida){
+            throw new BadCredentialsException("Credenciais inválidas.");
+        }
+        usuarioRepository.delete(usuario);
+    }
+
+    
     private void verificarTelefone(String telefone){
         if (telefoneUserRepository.existsByTelefone(telefone)) {
             throw new TelefoneJaCadastradoException("telefone indisponivel");
@@ -116,7 +138,7 @@ public class UsuarioService {
     }
 
     private UserResponseDTO converterParaResponseDTO(Usuario usuario){
-        List<TelefoneUsuario.telefoneProjection> telefones = telefoneUserRepository.findByIdUsuario(usuario.getId());       
+        List<TelefoneUsuario.telefoneProjection> telefones = telefoneUserRepository.findByUsuarioId(usuario.getId());       
         return UserResponseDTO.builder()
                               .email(usuario.getEmail())
                               .nome(usuario.getNome())

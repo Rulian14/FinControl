@@ -38,19 +38,20 @@ public class Receita {
     @Column(nullable = false, length = 20)
     private String recorrencia; // 'FIXA' ou 'TEMPORARIA'
 
-    @Column(name = "id_usuario", nullable = false)
-    private Long idUsuario; 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario", nullable = false)
+    private Usuario usuario;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_categoria", nullable = false)
     private Categoria categoria;
     
-    public Receita(String descricao, BigDecimal valor, LocalDateTime data, String recorrencia, Long idUsuario, Categoria categoria) {
+    public Receita(String descricao, BigDecimal valor, LocalDateTime data, String recorrencia, Usuario usuario, Categoria categoria) {
     this.descricao = descricao;
     this.valor = valor;
     this.data = data;
     this.recorrencia = recorrencia;
-    this.idUsuario = idUsuario;
+    this.usuario = usuario;
     this.categoria = categoria;
     }
 }

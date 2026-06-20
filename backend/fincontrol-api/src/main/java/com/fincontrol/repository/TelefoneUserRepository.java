@@ -9,11 +9,16 @@ import com.fincontrol.model.TelefoneUsuario;
 import com.fincontrol.model.TelefoneUsuario.telefoneProjection;
 
 public interface TelefoneUserRepository extends JpaRepository<TelefoneUsuario, Long>{
-    List<telefoneProjection> findByIdUsuario(Long idUsuario);
+    
+    List<telefoneProjection> findByUsuarioId(Long idUsuario);
+
+    Optional<TelefoneUsuario> findByIdAndUsuarioId(Long id, Long idUsuario);
+
+    long countByUsuarioId(Long idUsuario);
 
     boolean existsByTelefone(String telefone);
 
     boolean existsByTelefoneAndIdNot(String telefone, Long id);
 
-    Optional<TelefoneUsuario> findByIdAndIdUsuario(Long id, Long idUsuario);
+
 }

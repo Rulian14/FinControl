@@ -3,9 +3,10 @@ package com.fincontrol.dto.despesa;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.fincontrol.model.StatusTransacao;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
@@ -19,9 +20,10 @@ public class DespesaRequestDTO{
     @Positive
     private BigDecimal valor;
     @NotNull
-    @PastOrPresent
     private LocalDateTime data;
     private Integer idCategoria;
     @Pattern(regexp = "FIXA|TEMPORARIA", message = "deve ser FIXA ou TEMPORARIA")
     private String recorrencia;
+    
+    private StatusTransacao status;
 }

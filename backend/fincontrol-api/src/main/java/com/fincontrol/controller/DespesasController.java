@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fincontrol.dto.despesa.DespesaRequestDTO;
 import com.fincontrol.dto.despesa.DespesaResponseDTO;
+import com.fincontrol.dto.despesa.SugestaoAgendamentoDTO;
 import com.fincontrol.service.DespesaService;
 
 import jakarta.validation.Valid;
@@ -36,6 +37,12 @@ public class DespesasController {
         return ResponseEntity.ok(despesaService.listarTodas(idUsuarioLogado));
     }
 
+    @GetMapping("/sugestao")
+    public ResponseEntity<List<SugestaoAgendamentoDTO>> SugestaoDespesa(Authentication authentication){
+        Long idUsuarioLogado = Long.parseLong(authentication.getName());
+        return ResponseEntity.ok(despesaService.sugestaoDespesas(idUsuarioLogado));
+    }
+
     @PostMapping
     public ResponseEntity<DespesaResponseDTO> CadastrarDespesas(@Valid @RequestBody DespesaRequestDTO dto, Authentication authentication){
         Long idUsuarioLogado = Long.parseLong(authentication.getName());
@@ -47,8 +54,10 @@ public class DespesasController {
     @PutMapping("/{id}")
     public ResponseEntity<DespesaResponseDTO> AtualizarDespesa(
         @PathVariable Long id,
-        @RequestBody DespesaRequestDTO dto){
-        return ResponseEntity.ok().build();
+        @RequestBody DespesaRequestDTO dto,
+        Authentication authentication){
+            Long idUsuarioLogado = Long.parseLong(authentication.getName());
+            return ResponseEntity.ok().body(despesaService.atualizar(dto, idUsuarioLogado, id));
     }
     
     @DeleteMapping("/{id}")

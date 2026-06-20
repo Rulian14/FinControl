@@ -84,7 +84,7 @@ public class AuthService {
 
 
     private UserResponseDTO converterParaResponseDTO(Usuario usuario){
-        List<TelefoneUsuario.telefoneProjection> telefones = telefoneUserRepository.findByIdUsuario(usuario.getId());       
+        List<TelefoneUsuario.telefoneProjection> telefones = telefoneUserRepository.findByUsuarioId(usuario.getId());       
         return UserResponseDTO.builder()
                               .email(usuario.getEmail())
                               .nome(usuario.getNome())
@@ -93,7 +93,7 @@ public class AuthService {
     }
 
     private AuthResponseDTO converterParaResponseDTO(String token, Usuario usuario){
-        List<TelefoneUsuario.telefoneProjection> telefones = telefoneUserRepository.findByIdUsuario(usuario.getId());  
+        List<TelefoneUsuario.telefoneProjection> telefones = telefoneUserRepository.findByUsuarioId(usuario.getId());  
         return AuthResponseDTO.builder()
                               .token(token)
                               .tipo("Bearer")

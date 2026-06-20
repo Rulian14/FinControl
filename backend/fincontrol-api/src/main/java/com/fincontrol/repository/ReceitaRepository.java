@@ -2,6 +2,7 @@ package com.fincontrol.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,9 +14,11 @@ import com.fincontrol.model.Receita;
 
 @Repository
 public interface ReceitaRepository extends JpaRepository<Receita, Long>{
-    List<Receita> findByIdUsuario(Long idUsuario);   
+    List<Receita> findByUsuarioId(Long idUsuario);
+    
+    Optional<Receita> findByIdAndUsuarioId(Long id, Long usuarioId);
 
-    public List<Receita> findTop5ByIdUsuarioAndDataBetweenOrderByDataDesc(Long idUsuario, LocalDateTime inicio, LocalDateTime fim);
+    public List<Receita> findTop5ByUsuarioIdAndDataBetweenOrderByDataDesc(Long idUsuario, LocalDateTime inicio, LocalDateTime fim);
 
     @Query("""
     SELECT
@@ -27,7 +30,7 @@ public interface ReceitaRepository extends JpaRepository<Receita, Long>{
         'RECEITA' AS tipo
     FROM Receita r
     LEFT JOIN r.categoria c
-    WHERE r.idUsuario = :idUsuario
+    WHERE r.usuario.id = :idUsuario
       AND r.data >= :inicio
       AND r.data < :fim
     ORDER BY r.data DESC

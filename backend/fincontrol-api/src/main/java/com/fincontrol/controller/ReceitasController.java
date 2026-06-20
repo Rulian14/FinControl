@@ -45,8 +45,12 @@ public class ReceitasController{
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ReceitaResponseDTO> AtualizarReceita(@PathVariable Long id, @RequestBody ReceitaRequestDTO dto, Authentication authentication){
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ReceitaResponseDTO> AtualizarReceita(
+        @PathVariable Long id, 
+        @RequestBody ReceitaRequestDTO dto, 
+        Authentication authentication){
+             Long idUsuarioLogado = Long.parseLong(authentication.getName());
+            return ResponseEntity.ok().body(receitaService.atualizar(dto, idUsuarioLogado, id));
     }
 
     @DeleteMapping("/{id}")

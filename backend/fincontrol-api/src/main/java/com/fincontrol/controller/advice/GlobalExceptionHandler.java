@@ -16,13 +16,46 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.fincontrol.exception.CategoriaInvalidaException;
 import com.fincontrol.exception.EmailJaRegistradoException;
+import com.fincontrol.exception.LimiteTelefoneCadastradosException;
 import com.fincontrol.exception.ResourceNotFoundException;
 import com.fincontrol.exception.TelefoneJaCadastradoException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    
+    
+    @ExceptionHandler(CategoriaInvalidaException.class)
+    public ResponseEntity<ProblemDetail> handleCategoriaInvalida(CategoriaInvalidaException ex) {
+        
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage()
+        );
+        
+        problemDetail.setTitle("Regra de Negócio Violada");
+        problemDetail.setType(URI.create("https://api.fincontrol.com/errors/categoria-invalida"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(problemDetail);
+    }
+
+
+    @ExceptionHandler(LimiteTelefoneCadastradosException.class)
+    public ResponseEntity<ProblemDetail> handleLimiteTelefoneCadastrados(LimiteTelefoneCadastradosException ex) {
+        
+        // Substituído pelo novo padrão que não carrega o peso do passado
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage()
+        );
+        
+        problemDetail.setTitle("Regra de Negócio Violada");
+        problemDetail.setType(URI.create("https://api.fincontrol.com/errors/limite-telefones-atingido"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(problemDetail);
+    }
 
     @ExceptionHandler(EmailJaRegistradoException.class)
     public ResponseEntity<ProblemDetail> handleEmailJaRegistrado(EmailJaRegistradoException ex) {

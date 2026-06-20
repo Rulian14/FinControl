@@ -8,25 +8,32 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fincontrol.dto.receita.ReceitaRequestDTO;
 import com.fincontrol.dto.receita.ReceitaResponseDTO;
+import com.fincontrol.exception.CategoriaInvalidaException;
+import com.fincontrol.exception.ResourceNotFoundException;
 import com.fincontrol.model.Categoria;
 import com.fincontrol.model.Receita;
+import com.fincontrol.model.Usuario;
 import com.fincontrol.repository.CategoriaRepository;
 import com.fincontrol.repository.ReceitaRepository;
+import com.fincontrol.repository.UsuarioRepository;
 
 @Service
 public class ReceitaService {
 
     private final ReceitaRepository receitaRepository;
     private final CategoriaRepository categoriaRepository;
+      private final UsuarioRepository usuarioRepository;
 
-    public ReceitaService(ReceitaRepository receitaRepository, CategoriaRepository categoriaRepository){
+
+    public ReceitaService(ReceitaRepository receitaRepository, CategoriaRepository categoriaRepository, UsuarioRepository usuarioRepository){
         this.receitaRepository = receitaRepository;
         this.categoriaRepository = categoriaRepository;
-    }
+        this.usuarioRepository = usuarioRepository;
+    } 
 
     @Transactional(readOnly = true)
     public List<ReceitaResponseDTO> listarTodas(Long idUsuarioAutenticado){
-        return receitaRepository.findByIdUsuario(Long.valueOf(idUsuarioAutenticado))
+        return receitaRepository.findByUsuarioId(Long.valueOf(idUsuarioAutenticado))
                                 .stream()
                                 .map(this::converterParaResponseDTO)
                                 .collect(Collectors.toList());
@@ -36,10 +43,11 @@ public class ReceitaService {
     public ReceitaResponseDTO criar(ReceitaRequestDTO dto, Long idUsuarioAutenticado){
         Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
                 .orElseThrow(() -> new IllegalArgumentException("A categoria informada não habita este sistema."));
+        Usuario usuario = usuarioRepository.getReferenceById(idUsuarioAutenticado);
 
         // Se a categoria for de despesa, impedimos o vínculo com a receita
         if (!"RECEITA".equals(categoria.getTipo())) {
-            throw new IllegalStateException("Esta categoria pertence ao mundo das despesas, não das receitas.");
+            throw new CategoriaInvalidaException("Esta categoria pertence ao mundo das despesas, não das receitas.");
         }
 
         Receita receita = new Receita(
@@ -47,7 +55,7 @@ public class ReceitaService {
             dto.getValor(),
             dto.getData(),
             dto.getRecorrencia(),
-            idUsuarioAutenticado,
+            usuario,
             categoria);
 
         Receita receitaSalva = receitaRepository.save(receita);
@@ -55,13 +63,32 @@ public class ReceitaService {
     }
 
     @Transactional
-    public void deletar(Long id, Long idUsuarioAutenticado){
-        Receita receita = receitaRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Receita não encontrada."));
+    public ReceitaResponseDTO atualizar(ReceitaRequestDTO dto, Long idUsuarioAutenticado, Long id){
+        Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
+                .orElseThrow(() -> new ResourceNotFoundException("A categoria informada não habita este sistema."));
 
-        if (!receita.getIdUsuario().equals(idUsuarioAutenticado)) {
-            throw new SecurityException("Você não tem poder para apagar este registro.");
+        if (!"RECEITA".equals(categoria.getTipo())) {
+            throw new IllegalArgumentException("Esta categoria pertence ao mundo das despesas, não das receitas.");
         }
+        Receita receitaExistente = receitaRepository
+            .findByIdAndUsuarioId(id, idUsuarioAutenticado)
+            .orElseThrow(() -> new ResourceNotFoundException("Receita não encontrada."));
+                receitaExistente.setDescricao(dto.getDescricao());
+                receitaExistente.setValor(dto.getValor());
+                receitaExistente.setData(dto.getData());
+                receitaExistente.setRecorrencia(dto.getRecorrencia());
+                receitaExistente.setCategoria(categoria);
+           
+        return converterParaResponseDTO(receitaExistente);
+    }
+
+    @Transactional
+    public void deletar(Long id, Long idUsuarioAutenticado){
+        Receita receita = receitaRepository
+            .findByIdAndUsuarioId(id, idUsuarioAutenticado)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                    "Despesa não encontrada ou não pertence ao usuário."
+            ));
         receitaRepository.delete(receita);
     }
 
