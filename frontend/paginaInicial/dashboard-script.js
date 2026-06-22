@@ -13,7 +13,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // 2. Tenta usar /dashboard; se falhar, cai no fallback manual
   try {
-    const dash = await DashboardAPI.dados();
+    const agora = new Date();
+    const dash = await DashboardAPI.dados(agora.getFullYear(), agora.getMonth() + 1);
 
     if (dash) {
       // Backend retornou dados do dashboard diretamente
@@ -28,9 +29,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         tbody.innerHTML = lancamentos.map(item => `
           <tr>
             <td>${item.descricao}</td>
-            <td><span class="badge badge-${item.tipo || (item.valor >= 0 ? 'receita' : 'despesa')}">${item.categoria || "-"}</span></td>
+            <td><span class="badge badge-${(item.tipo || 'DESPESA').toLowerCase()}">${item.categoria || "-"}</span></td>
             <td>${new Date(item.data).toLocaleDateString("pt-BR")}</td>
-            <td class="${(item.tipo === 'receita' || item.valor >= 0) ? 'positivo' : 'negativo'}">${(item.tipo === 'receita' || item.valor >= 0) ? '+' : '-'} ${formatarMoeda(Math.abs(item.valor))}</td>
+            <td class="${item.tipo === 'RECEITA' ? 'positivo' : 'negativo'}">${item.tipo === 'RECEITA' ? '+' : '-'} ${formatarMoeda(Math.abs(item.valor))}</td>
           </tr>`).join("");
       } else {
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:30px">Nenhum lançamento ainda.</td></tr>';
