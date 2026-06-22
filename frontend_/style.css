@@ -140,7 +140,6 @@ input:focus{
 }
 
 /* BOTÃO */
-/* BOTÃO */
 button{
     width:100%;
     padding:14px;
@@ -152,8 +151,6 @@ button{
     font-weight:700;
     cursor:pointer;
     transition:.2s;
-
-    margin-top:20px; /* espaço acima do botão */
 }
 
 button:hover{

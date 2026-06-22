@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinControl - Receitas</title>
+<link rel="stylesheet" href="dashboard-shared.css">
+<style>
+  .filtro-bar { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+  .filtro-bar span { font-size:13px; font-weight:600; color:var(--text-muted); margin-right:4px; }
+  .btn-filtro { padding:7px 18px; border-radius:20px; border:1.5px solid var(--border); background:white; font-size:13px; font-weight:600; cursor:pointer; transition:0.2s; color:var(--text-muted); }
+  .btn-filtro:hover { border-color:var(--verde-medio); color:var(--verde-medio); }
+  .btn-filtro.ativo { background:var(--verde-medio); color:white; border-color:var(--verde-medio); }
+  .ordenacao-bar { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
+  .ordenacao-bar span { font-size:13px; color:var(--text-muted); }
+  .btn-ordem { padding:5px 14px; border-radius:8px; border:1px solid var(--border); background:white; font-size:12px; cursor:pointer; transition:0.2s; color:var(--text-muted); }
+  .btn-ordem.ativo { background:var(--verde-escuro); color:white; border-color:var(--verde-escuro); }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; align-items:center; justify-content:center; }
+  .modal-overlay.aberto { display:flex; }
+  .modal { background:white; border-radius:16px; padding:32px; width:100%; max-width:480px; box-shadow:0 8px 32px rgba(0,0,0,0.18); }
+  .modal h2 { margin-bottom:20px; font-size:18px; color:var(--text-dark); }
+  .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+  .btn-secondary { background:white; border:1.5px solid var(--border); color:var(--text-dark); }
+  .btn-secondary:hover { background:var(--bg-page); }
+</style>
+</head>
+<body>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="logo">Fin<span>Control</span></div>
+    <nav>
+      <a href="dashboard.html">🏠 Início</a>
+      <a href="receitas.html" class="active">💰 Receitas</a>
+      <a href="despesas.html">📉 Despesas</a>
+      <a href="metas.html">🎯 Metas</a>
+      <a href="relatorios.html">📊 Relatórios</a>
+      <a href="configuracoes.html">⚙ Configurações</a>
+    </nav>
+    <button class="logout-btn" onclick="logout()">🚪 Sair</button>
+  </aside>
+  <main class="main-content">
+    <header class="topbar">
+      <h1>💰 Receitas</h1>
+      <p>Registre e acompanhe todas as suas entradas financeiras</p>
+    </header>
+    <section class="cards">
+      <div class="card receita"><h3>Total de Receitas</h3><p id="total-receitas">R$ 0,00</p></div>
+      <div class="card saldo"><h3>Maior Receita</h3><p id="maior-receita">R$ 0,00</p></div>
+      <div class="card meta"><h3>Quantidade</h3><p id="qtd-receitas">0</p></div>
+    </section>
+    <div class="box">
+      <h2>Nova Receita</h2>
+      <form id="formReceita">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Descrição</label>
+            <input type="text" id="rec-descricao" placeholder="Ex: Salário, Freelance..." required>
+          </div>
+          <div class="form-group">
+            <label>Categoria</label>
+            <select id="rec-categoria">
+              <option value="Salário">Salário</option>
+              <option value="Freelance">Freelance</option>
+              <option value="Investimentos">Investimentos</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Valor (R$)</label>
+            <input type="number" id="rec-valor" placeholder="0,00" step="0.01" min="0" required>
+          </div>
+          <div class="form-group">
+            <label>Data</label>
+            <input type="date" id="rec-data" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="rec-recorrencia">
+            <option value="FIXA">Receita Fixa</option>
+            <option value="TEMPORARIA">Receita Temporária</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">+ Adicionar Receita</button>
+        <span class="msg" id="msg-receita" style="margin-left:14px;font-size:14px"></span>
+      </form>
+    </div>
+    <div class="box">
+      <h2>Histórico de Receitas</h2>
+      <div class="filtro-bar">
+        <span>Filtrar:</span>
+        <button class="btn-filtro ativo" id="filtro-todos" onclick="setFiltro('todos')">Todas</button>
+        <button class="btn-filtro" id="filtro-fixas" onclick="setFiltro('FIXA')">📌 Fixas</button>
+        <button class="btn-filtro" id="filtro-temporarias" onclick="setFiltro('TEMPORARIA')">⏳ Temporárias</button>
+      </div>
+      <div class="ordenacao-bar">
+        <span>Ordenar:</span>
+        <button class="btn-ordem" id="ord-antiga" onclick="setOrdem('antiga')">Mais antiga primeiro</button>
+        <button class="btn-ordem ativo" id="ord-recente" onclick="setOrdem('recente')">Mais recente primeiro</button>
+      </div>
+      <table>
+        <thead><tr><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Data</th><th>Valor</th><th>Ação</th></tr></thead>
+        <tbody id="tabela-receitas">
+          <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:30px">Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Modal de Edição -->
+<div class="modal-overlay" id="modal-edicao">
+  <div class="modal">
+    <h2>✏️ Editar Receita</h2>
+    <input type="hidden" id="edit-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Descrição</label>
+        <input type="text" id="edit-descricao" required>
+      </div>
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="edit-categoria">
+          <option value="Salário">Salário</option>
+          <option value="Freelance">Freelance</option>
+          <option value="Investimentos">Investimentos</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Valor (R$)</label>
+        <input type="number" id="edit-valor" step="0.01" min="0" required>
+      </div>
+      <div class="form-group">
+        <label>Data</label>
+        <input type="date" id="edit-data" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Tipo</label>
+      <select id="edit-recorrencia">
+        <option value="FIXA">Receita Fixa</option>
+        <option value="TEMPORARIA">Receita Temporária</option>
+      </select>
+    </div>
+    <span class="msg" id="msg-edit" style="font-size:13px;display:block;min-height:18px"></span>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarEdicao()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<script src="dados.js"></script>
+<script>
+let filtroAtivo = "todos";
+let ordemAtiva = "recente";
+let todasReceitas = [];
+
+document.addEventListener("DOMContentLoaded", async function () {
+  verificarLogin();
+  document.getElementById("rec-data").valueAsDate = new Date();
+  await renderTabela();
+
+  document.getElementById("formReceita").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const msg = document.getElementById("msg-receita");
+    const ok = await ReceitasAPI.criar({
+      descricao: document.getElementById("rec-descricao").value.trim(),
+      categoria: document.getElementById("rec-categoria").value,
+      valor: parseFloat(document.getElementById("rec-valor").value),
+      data: document.getElementById("rec-data").value,
+      recorrencia: document.getElementById("rec-recorrencia").value
+    });
+    if (ok) {
+      this.reset();
+      document.getElementById("rec-data").valueAsDate = new Date();
+      msg.textContent = "Receita adicionada!";
+      msg.style.color = "green";
+      setTimeout(() => msg.textContent = "", 2500);
+      await renderTabela();
+    } else {
+      msg.textContent = "Erro ao salvar. Verifique os dados.";
+      msg.style.color = "red";
+    }
+  });
+});
+
+async function renderTabela() {
+  todasReceitas = await ReceitasAPI.listar();
+  renderFiltrado();
+}
+
+function renderFiltrado() {
+  let lista = filtroAtivo === "todos"
+    ? [...todasReceitas]
+    : todasReceitas.filter(r => (r.recorrencia || "FIXA") === filtroAtivo);
+
+  lista.sort((a, b) => {
+    const diff = new Date(a.data) - new Date(b.data);
+    return ordemAtiva === "recente" ? -diff : diff;
+  });
+
+  const total = todasReceitas.reduce((a, r) => a + r.valor, 0);
+  document.getElementById("total-receitas").textContent = formatarMoeda(total);
+  document.getElementById("qtd-receitas").textContent = todasReceitas.length;
+  const maior = todasReceitas.length > 0 ? Math.max(...todasReceitas.map(r => r.valor)) : 0;
+  document.getElementById("maior-receita").textContent = formatarMoeda(maior);
+
+  const tbody = document.getElementById("tabela-receitas");
+  if (lista.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:30px">Nenhuma receita encontrada.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = lista.map(r => {
+    const tipo = r.recorrencia || "FIXA";
+    const badgeTipo = tipo === "FIXA"
+      ? '<span style="display:inline-block;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:700;background:#e0f2fe;color:#0369a1">📌 Fixa</span>'
+      : '<span style="display:inline-block;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:700;background:#fef9c3;color:#92400e">⏳ Temporária</span>';
+    return `
+      <tr>
+        <td>${r.descricao}</td>
+        <td><span class="badge badge-receita">${r.categoria}</span></td>
+        <td>${badgeTipo}</td>
+        <td>${new Date(r.data).toLocaleDateString("pt-BR")}</td>
+        <td class="positivo">+ ${formatarMoeda(r.valor)}</td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-sm" style="background:#e0f2fe;color:#0369a1;border:none" onclick="abrirModal(${r.id})">✏️ Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="excluir(${r.id})">Excluir</button>
+        </td>
+      </tr>`;
+  }).join("");
+}
+
+window.setFiltro = function(tipo) {
+  filtroAtivo = tipo;
+  document.querySelectorAll(".btn-filtro").forEach(b => b.classList.remove("ativo"));
+  document.getElementById("filtro-" + (tipo === "todos" ? "todos" : tipo === "FIXA" ? "fixas" : "temporarias")).classList.add("ativo");
+  renderFiltrado();
+};
+
+window.setOrdem = function(ordem) {
+  ordemAtiva = ordem;
+  document.getElementById("ord-antiga").classList.toggle("ativo", ordem === "antiga");
+  document.getElementById("ord-recente").classList.toggle("ativo", ordem === "recente");
+  renderFiltrado();
+};
+
+window.excluir = async function(id) {
+  if (!confirm("Excluir esta receita?")) return;
+  await ReceitasAPI.excluir(id);
+  await renderTabela();
+};
+
+window.abrirModal = function(id) {
+  const r = todasReceitas.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById("edit-id").value = id;
+  document.getElementById("edit-descricao").value = r.descricao;
+  document.getElementById("edit-categoria").value = r.categoria;
+  document.getElementById("edit-valor").value = r.valor;
+  document.getElementById("edit-data").value = (r.data || "").slice(0, 10);
+  document.getElementById("edit-recorrencia").value = r.recorrencia || "FIXA";
+  document.getElementById("msg-edit").textContent = "";
+  document.getElementById("modal-edicao").classList.add("aberto");
+};
+
+window.fecharModal = function() {
+  document.getElementById("modal-edicao").classList.remove("aberto");
+};
+
+document.getElementById("modal-edicao").addEventListener("click", function(e) {
+  if (e.target === this) fecharModal();
+});
+
+window.salvarEdicao = async function() {
+  const id = parseInt(document.getElementById("edit-id").value);
+  const msg = document.getElementById("msg-edit");
+  const ok = await ReceitasAPI.editar(id, {
+    descricao: document.getElementById("edit-descricao").value.trim(),
+    categoria: document.getElementById("edit-categoria").value,
+    valor: parseFloat(document.getElementById("edit-valor").value),
+    data: document.getElementById("edit-data").value,
+    recorrencia: document.getElementById("edit-recorrencia").value
+  });
+  if (ok) {
+    msg.textContent = "Salvo!";
+    msg.style.color = "green";
+    setTimeout(() => fecharModal(), 900);
+    await renderTabela();
+  } else {
+    msg.textContent = "Erro ao salvar alterações.";
+    msg.style.color = "red";
+  }
+};
+</script>
+</body>
+</html>
