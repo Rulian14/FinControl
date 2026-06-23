@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -70,5 +71,13 @@ public interface DespesaRepository extends JpaRepository<Despesa, Long>{
 
     public List<Despesa> findTop5ByUsuarioIdAndDataBetweenOrderByDataDesc(Long idUsuario, LocalDateTime inicio, LocalDateTime fim);
 
-
+    @Modifying
+    @Query("""
+        UPDATE Despesa d
+        SET d.status = 'PENDENTE'
+        WHERE d.status = 'AGENDADA'
+        AND d.data < :agora
+    """)
+    int atualizarAgendadasVencidas(@Param("agora") LocalDateTime agora);
+    
 }

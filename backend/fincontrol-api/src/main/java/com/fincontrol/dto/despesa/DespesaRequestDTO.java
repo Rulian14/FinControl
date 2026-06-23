@@ -24,6 +24,5 @@ public class DespesaRequestDTO{
     private Integer idCategoria;
     @Pattern(regexp = "FIXA|TEMPORARIA", message = "deve ser FIXA ou TEMPORARIA")
     private String recorrencia;
-    
     private StatusTransacao status;
 }

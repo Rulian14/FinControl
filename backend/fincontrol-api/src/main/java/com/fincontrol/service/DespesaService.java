@@ -17,11 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fincontrol.dto.despesa.DespesaRequestDTO;
 import com.fincontrol.dto.despesa.DespesaResponseDTO;
 import com.fincontrol.dto.despesa.SugestaoAgendamentoDTO;
-import com.fincontrol.exception.CategoriaInvalidaException;
+import com.fincontrol.exception.AgendarDespesaPassadoException;
 import com.fincontrol.exception.ResourceNotFoundException;
 import com.fincontrol.model.Categoria;
 import com.fincontrol.model.Despesa;
 import com.fincontrol.model.HistoricoDespesaProjection;
+import com.fincontrol.model.StatusTransacao;
 import com.fincontrol.model.Usuario;
 import com.fincontrol.repository.CategoriaRepository;
 import com.fincontrol.repository.DespesaRepository;
@@ -51,12 +52,12 @@ public class DespesaService {
     @Transactional
     public DespesaResponseDTO criar(DespesaRequestDTO dto, Long idUsuarioAutenticado){
         Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
-                .orElseThrow(() -> new IllegalArgumentException("A categoria informada não habita este sistema."));
+                .orElseThrow(() -> new ResourceNotFoundException("A categoria informada não habita este sistema."));
         Usuario usuario = usuarioRepository.getReferenceById(idUsuarioAutenticado);
 
-        if (!"DESPESA".equals(categoria.getTipo())) {
-            throw new CategoriaInvalidaException("Esta categoria pertence ao mundo das receitas, não pode ser usada em despesas.");
-        }
+        verificarCategoria(categoria);
+
+        validarDataAgendamento(dto);
 
         Despesa despesa = new Despesa(
             dto.getDescricao(),
@@ -77,9 +78,9 @@ public class DespesaService {
         Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
                 .orElseThrow(() -> new ResourceNotFoundException("A categoria informada não habita este sistema."));
 
-        if (!"DESPESA".equals(categoria.getTipo())) {
-            throw new IllegalArgumentException("Esta categoria pertence ao mundo das receitas, não pode ser usada em despesas.");
-        }
+        verificarCategoria(categoria);
+
+        validarDataAgendamento(dto);
 
         Despesa despesaExistente = despesaRepository
             .findByIdAndUsuarioId(id, idUsuarioAutenticado)
@@ -257,7 +258,14 @@ public class DespesaService {
                                                      "FIXA",
                                                      "SUGESTAO");
     }
+    //scheduler
+    @Transactional
+    public int atualizarAgendadasVencidas() {
+        LocalDateTime agora = LocalDateTime.now();
+        return despesaRepository.atualizarAgendadasVencidas(agora);
+    }
 
+    //conversão e regras de negocio
     private DespesaResponseDTO converterParaResponseDTO(Despesa despesa) {
         return DespesaResponseDTO.builder()
             .id(despesa.getId())
@@ -268,5 +276,18 @@ public class DespesaService {
             .idCategoria(despesa.getCategoria().getId())
             .status(despesa.getStatus())
             .build();
+    }
+
+    private void verificarCategoria(Categoria categoria){
+        if (!"DESPESA".equals(categoria.getTipo())) {
+            throw new IllegalArgumentException("Esta categoria pertence ao mundo das receitas, não pode ser usada em despesas.");
+        }
+    }
+
+    private void validarDataAgendamento(DespesaRequestDTO dto){
+        LocalDateTime agora = LocalDateTime.now();
+        if (dto.getStatus() == StatusTransacao.AGENDADA && !dto.getData().isAfter(agora)){
+            throw new AgendarDespesaPassadoException("Não é possivel agendar uma despesa no passado");
+        }
     }
 }

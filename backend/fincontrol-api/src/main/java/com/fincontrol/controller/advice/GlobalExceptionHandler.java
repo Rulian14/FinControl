@@ -16,6 +16,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.fincontrol.exception.AgendarDespesaPassadoException;
 import com.fincontrol.exception.CategoriaInvalidaException;
 import com.fincontrol.exception.EmailJaRegistradoException;
 import com.fincontrol.exception.LimiteTelefoneCadastradosException;
@@ -26,7 +27,20 @@ import com.fincontrol.exception.TelefoneJaCadastradoException;
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     
-    
+     @ExceptionHandler(AgendarDespesaPassadoException.class)
+     public ResponseEntity<ProblemDetail> handleAgendarDespesaPassado(AgendarDespesaPassadoException ex) {
+        
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.BAD_REQUEST, ex.getMessage()
+        );
+        
+        problemDetail.setTitle("Regra de Negócio Violada");
+        problemDetail.setType(URI.create("https://api.fincontrol.com/errors/agendamento-no-passado"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
+
     @ExceptionHandler(CategoriaInvalidaException.class)
     public ResponseEntity<ProblemDetail> handleCategoriaInvalida(CategoriaInvalidaException ex) {
         
@@ -40,7 +54,6 @@ public class GlobalExceptionHandler {
         
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(problemDetail);
     }
-
 
     @ExceptionHandler(LimiteTelefoneCadastradosException.class)
     public ResponseEntity<ProblemDetail> handleLimiteTelefoneCadastrados(LimiteTelefoneCadastradosException ex) {

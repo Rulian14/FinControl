@@ -42,13 +42,10 @@ public class ReceitaService {
     @Transactional
     public ReceitaResponseDTO criar(ReceitaRequestDTO dto, Long idUsuarioAutenticado){
         Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
-                .orElseThrow(() -> new IllegalArgumentException("A categoria informada não habita este sistema."));
+                .orElseThrow(() -> new ResourceNotFoundException("A categoria informada não habita este sistema."));
         Usuario usuario = usuarioRepository.getReferenceById(idUsuarioAutenticado);
 
-        // Se a categoria for de despesa, impedimos o vínculo com a receita
-        if (!"RECEITA".equals(categoria.getTipo())) {
-            throw new CategoriaInvalidaException("Esta categoria pertence ao mundo das despesas, não das receitas.");
-        }
+        verificarCategoria(categoria);
 
         Receita receita = new Receita(
             dto.getDescricao(),
@@ -67,9 +64,8 @@ public class ReceitaService {
         Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
                 .orElseThrow(() -> new ResourceNotFoundException("A categoria informada não habita este sistema."));
 
-        if (!"RECEITA".equals(categoria.getTipo())) {
-            throw new IllegalArgumentException("Esta categoria pertence ao mundo das despesas, não das receitas.");
-        }
+        verificarCategoria(categoria);
+        
         Receita receitaExistente = receitaRepository
             .findByIdAndUsuarioId(id, idUsuarioAutenticado)
             .orElseThrow(() -> new ResourceNotFoundException("Receita não encontrada."));
@@ -91,6 +87,14 @@ public class ReceitaService {
             ));
         receitaRepository.delete(receita);
     }
+
+    //conversão e regras de negocio
+    private void verificarCategoria(Categoria categoria){
+        if (!"RECEITA".equals(categoria.getTipo())) {
+            throw new CategoriaInvalidaException("Esta categoria pertence ao mundo das despesas, não das receitas.");
+        }
+    }
+
 
     private ReceitaResponseDTO converterParaResponseDTO(Receita receita) {
         return ReceitaResponseDTO.builder()
