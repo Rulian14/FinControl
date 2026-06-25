@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="dashboard-shared.css">
     <style>
-        /* Estilos específicos para a página de metas */
         .metas-container {
             padding: 24px;
             max-width: 1200px;
@@ -112,7 +111,6 @@
             justify-content: space-between;
         }
 
-        /* Estilos do Modal */
         .modal {
             display: none;
             position: fixed;
@@ -183,3 +181,164 @@
         <div class="header-actions">
             <div>
                 <h1 style="margin: 0; color: #2c3e50;">Minhas Metas Financeiras</h1>
+                <p style="margin: 4px 0 0 0; color: #7f8c8d;">Planeje e acompanhe seus objetivos de médio e longo prazo.</p>
+            </div>
+            <button class="btn-primary" onclick="openModal()">Nova Meta</button>
+        </div>
+
+        <div class="grid-metas" id="metasGrid"></div>
+    </div>
+
+    <div class="modal" id="metaModal">
+        <div class="modal-content">
+            <div class="modal-header">Cadastrar Nova Meta</div>
+            <form id="metaForm" onsubmit="salvarMeta(event)">
+                <div class="form-group">
+                    <label for="descricao">Descrição / Nome do Objetivo</label>
+                    <input type="text" id="descricao" required placeholder="Ex: Viagem de Férias, Reserva de Emergência">
+                </div>
+                <div class="form-group">
+                    <label for="valorAlvo">Valor Alvo (R$)</label>
+                    <input type="number" id="valorAlvo" step="0.01" required placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="valorAtual">Valor Já Poupado (R$)</label>
+                    <input type="number" id="valorAtual" step="0.01" value="0.00" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="dataLimite">Data Limite (Opcional)</label>
+                    <input type="date" id="dataLimite">
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar Meta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080/api/metas'; 
+        const token = localStorage.getItem('token'); 
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : ''
+        };
+
+        document.addEventListener('DOMContentLoaded', carregarMetas);
+
+        function openModal() {
+            document.getElementById('metaModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('metaModal').style.display = 'none';
+            document.getElementById('metaForm').reset();
+        }
+
+        async function carregarMetas() {
+            try {
+                const response = await fetch(API_URL, { method: 'GET', headers });
+                if (!response.ok) throw new Error('Erro ao buscar metas');
+                const metas = await response.json();
+                renderizarMetas(metas);
+            } catch (error) {
+                console.warn('Backend indisponível. Usando armazenamento local do navegador.');
+                const metasLocais = JSON.parse(localStorage.getItem('metas_backup') || '[]');
+                renderizarMetas(metasLocais);
+            }
+        }
+
+        function renderizarMetas(metas) {
+            const grid = document.getElementById('metasGrid');
+            grid.innerHTML = '';
+
+            if (!metas || metas.length === 0) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #7f8c8d; padding: 40px;">Você ainda não cadastrou nenhuma meta.</p>`;
+                return;
+            }
+
+            metas.forEach(meta => {
+                const alvo = Number(meta.valorAlvo) || 0;
+                const atual = Number(meta.valorAtual) || 0;
+                const percentual = alvo > 0 ? Math.min(((atual / alvo) * 100), 100).toFixed(1) : 0;
+                
+                // Trata fusos horários locais ao formatar a data vinda do input tipo date
+                let dataFormatada = 'Sem prazo';
+                if (meta.dataLimite) {
+                    const dateObj = new Date(meta.dataLimite + 'T00:00:00');
+                    dataFormatada = isNaN(dateObj.getTime()) ? 'Sem prazo' : dateObj.toLocaleDateString('pt-BR');
+                }
+
+                const card = document.createElement('div');
+                card.className = 'meta-card';
+                card.innerHTML = `
+                    <div class="meta-header">
+                        <h3 class="meta-title">${meta.descricao}</h3>
+                        <button class="btn-delete" onclick="deletarMeta(${meta.id})">Excluir</button>
+                    </div>
+                    <div class="meta-values">
+                        <span>Progresso: ${percentual}%</span>
+                        <span class="meta-target">Alvo: R$ ${alvo.toFixed(2)}</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: ${percentual}%; background-color: ${percentual >= 100 ? '#2ecc71' : '#3498db'}"></div>
+                    </div>
+                    <div class="meta-footer">
+                        <span>Poupado: R$ ${atual.toFixed(2)}</span>
+                        <span>Prazo: ${dataFormatada}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function salvarMeta(event) {
+            event.preventDefault();
+
+            const novaMeta = {
+                descricao: document.getElementById('descricao').value,
+                valorAlvo: parseFloat(document.getElementById('valorAlvo').value),
+                valorAtual: parseFloat(document.getElementById('valorAtual').value || 0),
+                dataLimite: document.getElementById('dataLimite').value || null
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(novaMeta)
+                });
+
+                if (!response.ok) throw new Error('Erro ao salvar meta');
+                closeModal();
+                carregarMetas();
+            } catch (error) {
+                let metasLocais = JSON.parse(localStorage.getItem('metas_backup') || '[]');
+                novaMeta.id = Date.now(); 
+                metasLocais.push(novaMeta);
+                localStorage.setItem('metas_backup', JSON.stringify(metasLocais));
+                
+                closeModal();
+                renderizarMetas(metasLocais);
+            }
+        }
+
+        async function deletarMeta(id) {
+            if (!confirm('Tem certeza que deseja remover esta meta?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers });
+                if (!response.ok) throw new Error('Erro ao deletar meta');
+                carregarMetas();
+            } catch (error) {
+                let metasLocais = JSON.parse(localStorage.getItem('metas_backup') || '[]');
+                metasLocais = metasLocais.filter(m => m.id !== id);
+                localStorage.setItem('metas_backup', JSON.stringify(metasLocais));
+                renderizarMetas(metasLocais);
+            }
+        }
+    </script>
+</body>
+</html>
