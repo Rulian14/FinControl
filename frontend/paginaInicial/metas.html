@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinControl - Metas</title>
+<link rel="stylesheet" href="dashboard-shared.css">
+<style>
+  .btn-voltar {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 18px; border-radius: 10px;
+    background: white; border: 1.5px solid var(--border);
+    color: var(--text-dark); font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: 0.2s; text-decoration: none;
+    margin-bottom: 20px;
+  }
+  .btn-voltar:hover { background: var(--bg-page); border-color: var(--verde-medio); color: var(--verde-medio); }
+  .btn-voltar svg { width:16px; height:16px; }
+</style>
+</head>
+<body>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="logo">Fin<span>Control</span></div>
+    <nav>
+      <a href="dashboard.html">🏠 Início</a>
+      <a href="receitas.html">💰 Receitas</a>
+      <a href="despesas.html">📉 Despesas</a>
+      <a href="metas.html" class="active">🎯 Metas</a>
+      <a href="relatorios.html">📊 Relatórios</a>
+      <a href="configuracoes.html">⚙ Configurações</a>
+    </nav>
+    <button class="logout-btn" onclick="logout()">🚪 Sair</button>
+  </aside>
+  <main class="main-content">
+    <a href="dashboard.html" class="btn-voltar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      Voltar
+    </a>
+    <header class="topbar">
+      <h1>🎯 Metas Financeiras</h1>
+      <p>Cadastre e acompanhe metas financeiras</p>
+    </header>
+    <div class="box">
+    <h2>Nova Meta</h2>
+    <input id="metaNome" placeholder="Descrição da meta" style="width:100%;padding:10px;margin-bottom:10px">
+    <input id="metaValor" type="number" placeholder="Valor alvo" style="width:100%;padding:10px;margin-bottom:10px">
+    <button class="btn btn-primary" onclick="addMeta()">Adicionar Meta</button>
+    <div id="listaMetas" style="margin-top:20px"></div>
+    <script>
+    function renderMetas(){
+      const metas=JSON.parse(localStorage.getItem('metas')||'[]');
+      document.getElementById('listaMetas').innerHTML=metas.map(m=>`<p>🎯 ${m.nome} - R$ ${m.valor}</p>`).join('');
+    }
+    function addMeta(){
+      const nome=document.getElementById('metaNome').value;
+      const valor=document.getElementById('metaValor').value;
+      const metas=JSON.parse(localStorage.getItem('metas')||'[]');
+      metas.push({nome,valor});
+      localStorage.setItem('metas',JSON.stringify(metas));
+      renderMetas();
+    }
+    renderMetas();
+    </script>
+    <div style="text-align:center;padding:20px">
+      <p style="font-size:48px">🚧</p>
+      <h2 style="margin:16px 0 8px">Em breve</h2>
+      <p style="color:#64748b">O backend desta funcionalidade ainda está sendo desenvolvido.</p>
+      <a href="dashboard.html" class="btn btn-primary" style="display:inline-block;margin-top:24px;text-decoration:none">← Voltar ao Início</a>
+    </div>
+  </main>
+</div>
+<script src="dados.js"></script>
+</body>
+</html>
