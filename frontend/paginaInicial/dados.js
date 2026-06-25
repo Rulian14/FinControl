@@ -221,3 +221,48 @@ const DespesasAPI = {
     } catch { return false; }
   }
 };
+
+// ---- METAS ----
+const MetasAPI = {
+  async listar() {
+    try {
+      const res = await fetch(API + "/metas", { headers: headers() });
+      if (!res.ok) return [];
+      return await res.json();
+    } catch { return []; }
+  },
+  async criar(dados) {
+    try {
+      const res = await fetch(API + "/metas", {
+        method: "POST", headers: headers(),
+        body: JSON.stringify({
+          nome: dados.nome,
+          valorObjetivo: dados.valorObjetivo,
+          valorContribuido: dados.valorContribuido || 0,
+          dataLimite: dados.dataLimite
+        })
+      });
+      return res.ok || res.status === 201;
+    } catch { return false; }
+  },
+  async editar(id, dados) {
+    try {
+      const res = await fetch(API + "/metas/" + id, {
+        method: "PUT", headers: headers(),
+        body: JSON.stringify({
+          nome: dados.nome,
+          valorObjetivo: dados.valorObjetivo,
+          valorContribuido: dados.valorContribuido || 0,
+          dataLimite: dados.dataLimite
+        })
+      });
+      return res.ok;
+    } catch { return false; }
+  },
+  async excluir(id) {
+    try {
+      const res = await fetch(API + "/metas/" + id, { method: "DELETE", headers: headers() });
+      return res.ok || res.status === 204;
+    } catch { return false; }
+  }
+};

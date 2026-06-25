@@ -1,344 +1,326 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinControl - Metas Financeiras</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="dashboard-shared.css">
-    <style>
-        .metas-container {
-            padding: 24px;
-            max-width: 1200px;
-            margin: 0 auto;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .header-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-
-        .btn-primary {
-            background-color: #2ecc71;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-
-        .btn-primary:hover {
-            background-color: #27ae60;
-        }
-
-        .grid-metas {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .meta-card {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border: 1px solid #e1e8ed;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .meta-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 12px;
-        }
-
-        .meta-title {
-            font-size: 1.2rem;
-            margin: 0;
-            color: #2c3e50;
-        }
-
-        .btn-delete {
-            background: none;
-            border: none;
-            color: #e74c3c;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-
-        .meta-values {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            color: #7f8c8d;
-        }
-
-        .meta-target {
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        .progress-bar-container {
-            background-color: #ecf0f1;
-            border-radius: 10px;
-            height: 12px;
-            width: 100%;
-            overflow: hidden;
-            margin-bottom: 12px;
-        }
-
-        .progress-bar {
-            background-color: #3498db;
-            height: 100%;
-            width: 0%;
-            transition: width 0.5s ease-in-out;
-        }
-
-        .meta-footer {
-            margin-top: auto;
-            font-size: 0.8rem;
-            color: #95a5a6;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 24px;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 450px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .modal-header {
-            margin-bottom: 16px;
-            font-size: 1.25rem;
-            color: #2c3e50;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            color: #34495e;
-            font-size: 0.9rem;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .btn-secondary {
-            background-color: #95a5a6;
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinControl - Metas</title>
+<link rel="stylesheet" href="dashboard-shared.css">
+<style>
+  .filtro-bar { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+  .filtro-bar span { font-size:13px; font-weight:600; color:var(--text-muted); margin-right:4px; }
+  .btn-filtro { padding:7px 18px; border-radius:20px; border:1.5px solid var(--border); background:white; font-size:13px; font-weight:600; cursor:pointer; transition:0.2s; color:var(--text-muted); }
+  .btn-filtro:hover { border-color:var(--verde-medio); color:var(--verde-medio); }
+  .btn-filtro.ativo { background:var(--verde-medio); color:white; border-color:var(--verde-medio); }
+  .ordenacao-bar { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
+  .ordenacao-bar span { font-size:13px; color:var(--text-muted); }
+  .btn-ordem { padding:5px 14px; border-radius:8px; border:1px solid var(--border); background:white; font-size:12px; cursor:pointer; transition:0.2s; color:var(--text-muted); }
+  .btn-ordem.ativo { background:var(--verde-escuro); color:white; border-color:var(--verde-escuro); }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; align-items:center; justify-content:center; }
+  .modal-overlay.aberto { display:flex; }
+  .modal { background:white; border-radius:16px; padding:32px; width:100%; max-width:480px; box-shadow:0 8px 32px rgba(0,0,0,0.18); }
+  .modal h2 { margin-bottom:20px; font-size:18px; color:var(--text-dark); }
+  .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+  .btn-secondary { background:white; border:1.5px solid var(--border); color:var(--text-dark); }
+  .btn-secondary:hover { background:var(--bg-page); }
+  .progress-mini { background:var(--border); border-radius:20px; height:8px; overflow:hidden; margin-top:5px; min-width:100px; }
+  .progress-mini-fill { height:100%; border-radius:20px; background:var(--verde-medio); transition:width 0.4s ease; }
+  .progress-mini-fill.completo { background:var(--success); }
+  .progress-mini-fill.critico { background:var(--warning); }
+</style>
 </head>
 <body>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="logo">Fin<span>Control</span></div>
+    <nav>
+      <a href="dashboard.html">🏠 Início</a>
+      <a href="receitas.html">💰 Receitas</a>
+      <a href="despesas.html">📉 Despesas</a>
+      <a href="metas.html" class="active">🎯 Metas</a>
+      <a href="relatorios.html">📊 Relatórios</a>
+      <a href="configuracoes.html">⚙ Configurações</a>
+    </nav>
+    <button class="logout-btn" onclick="logout()">🚪 Sair</button>
+  </aside>
+  <main class="main-content">
+    <header class="topbar">
+      <h1>🎯 Metas Financeiras</h1>
+      <p>Defina e acompanhe seus objetivos financeiros</p>
+    </header>
 
-    <div class="metas-container">
-        <div class="header-actions">
-            <div>
-                <h1 style="margin: 0; color: #2c3e50;">Minhas Metas Financeiras</h1>
-                <p style="margin: 4px 0 0 0; color: #7f8c8d;">Planeje e acompanhe seus objetivos de médio e longo prazo.</p>
-            </div>
-            <button class="btn-primary" onclick="openModal()">Nova Meta</button>
+    <section class="cards">
+      <div class="card meta"><h3>Total de Metas</h3><p id="total-metas">0</p></div>
+      <div class="card receita"><h3>Metas Atingidas</h3><p id="metas-atingidas">0</p></div>
+      <div class="card saldo"><h3>Em Andamento</h3><p id="metas-andamento">0</p></div>
+    </section>
+
+    <div class="box">
+      <h2>Nova Meta</h2>
+      <form id="formMeta">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nome da Meta</label>
+            <input type="text" id="meta-nome" placeholder="Ex: Viagem, Reserva de emergência..." required>
+          </div>
+          <div class="form-group">
+            <label>Valor Objetivo (R$)</label>
+            <input type="number" id="meta-valorObjetivo" placeholder="0,00" step="0.01" min="1" required>
+          </div>
         </div>
-
-        <div class="grid-metas" id="metasGrid"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Valor Já Contribuído (R$)</label>
+            <input type="number" id="meta-valorContribuido" placeholder="0,00" step="0.01" min="0" value="0" required>
+          </div>
+          <div class="form-group">
+            <label>Data Limite</label>
+            <input type="date" id="meta-dataLimite" required>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">+ Adicionar Meta</button>
+        <span class="msg" id="msg-meta" style="margin-left:14px;font-size:14px"></span>
+      </form>
     </div>
 
-    <div class="modal" id="metaModal">
-        <div class="modal-content">
-            <div class="modal-header">Cadastrar Nova Meta</div>
-            <form id="metaForm" onsubmit="salvarMeta(event)">
-                <div class="form-group">
-                    <label for="descricao">Descrição / Nome do Objetivo</label>
-                    <input type="text" id="descricao" required placeholder="Ex: Viagem de Férias, Reserva de Emergência">
-                </div>
-                <div class="form-group">
-                    <label for="valorAlvo">Valor Alvo (R$)</label>
-                    <input type="number" id="valorAlvo" step="0.01" required placeholder="0.00">
-                </div>
-                <div class="form-group">
-                    <label for="valorAtual">Valor Já Poupado (R$)</label>
-                    <input type="number" id="valorAtual" step="0.01" value="0.00" placeholder="0.00">
-                </div>
-                <div class="form-group">
-                    <label for="dataLimite">Data Limite (Opcional)</label>
-                    <input type="date" id="dataLimite">
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancelar</button>
-                    <button type="submit" class="btn-primary">Salvar Meta</button>
-                </div>
-            </form>
-        </div>
+    <div class="box">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+        <h2 style="margin-bottom:0">Minhas Metas</h2>
+      </div>
+      <div class="filtro-bar">
+        <span>Filtrar:</span>
+        <button class="btn-filtro ativo" id="filtro-todas" onclick="setFiltro('todas')">Todas</button>
+        <button class="btn-filtro" id="filtro-andamento" onclick="setFiltro('andamento')">⏳ Em Andamento</button>
+        <button class="btn-filtro" id="filtro-atingidas" onclick="setFiltro('atingidas')">✅ Atingidas</button>
+      </div>
+      <div class="ordenacao-bar">
+        <span>Ordenar:</span>
+        <button class="btn-ordem" id="ord-prazo" onclick="setOrdem('prazo')">Prazo mais próximo</button>
+        <button class="btn-ordem ativo" id="ord-progresso" onclick="setOrdem('progresso')">Maior progresso</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Meta</th>
+            <th>Progresso</th>
+            <th>Contribuído</th>
+            <th>Objetivo</th>
+            <th>Data Limite</th>
+            <th>Status</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-metas">
+          <tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:30px">Carregando...</td></tr>
+        </tbody>
+      </table>
     </div>
+  </main>
+</div>
 
-    <script>
-        const API_URL = 'http://localhost:8080/api/metas'; 
-        const token = localStorage.getItem('token'); 
+<!-- Modal de Edição -->
+<div class="modal-overlay" id="modal-edicao">
+  <div class="modal">
+    <h2>✏️ Editar Meta</h2>
+    <input type="hidden" id="edit-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nome da Meta</label>
+        <input type="text" id="edit-nome" required>
+      </div>
+      <div class="form-group">
+        <label>Valor Objetivo (R$)</label>
+        <input type="number" id="edit-valorObjetivo" step="0.01" min="1" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Valor Contribuído (R$)</label>
+        <input type="number" id="edit-valorContribuido" step="0.01" min="0" required>
+      </div>
+      <div class="form-group">
+        <label>Data Limite</label>
+        <input type="date" id="edit-dataLimite" required>
+      </div>
+    </div>
+    <span class="msg" id="msg-edit" style="font-size:13px;display:block;min-height:18px"></span>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarEdicao()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
 
-        const headers = {
-            'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : ''
-        };
+<script src="dados.js"></script>
+<script>
+let filtroAtivo = "todas";
+let ordemAtiva = "progresso";
+let todasMetas = [];
 
-        document.addEventListener('DOMContentLoaded', carregarMetas);
+// Normaliza dataLimite independente de chegar como string "2025-12-01" ou array [2025,12,1]
+function normalizarDataLimite(dataLimite) {
+  if (!dataLimite) return "";
+  if (Array.isArray(dataLimite)) {
+    const [ano, mes, dia] = dataLimite;
+    return `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+  }
+  return String(dataLimite).slice(0, 10);
+}
 
-        function openModal() {
-            document.getElementById('metaModal').style.display = 'flex';
-        }
+function formatarDataLimite(dataLimite) {
+  const str = normalizarDataLimite(dataLimite);
+  if (!str) return "-";
+  return new Date(str + "T00:00:00").toLocaleDateString("pt-BR");
+}
 
-        function closeModal() {
-            document.getElementById('metaModal').style.display = 'none';
-            document.getElementById('metaForm').reset();
-        }
+document.addEventListener("DOMContentLoaded", async function () {
+  verificarLogin();
 
-        async function carregarMetas() {
-            try {
-                const response = await fetch(API_URL, { method: 'GET', headers });
-                if (!response.ok) throw new Error('Erro ao buscar metas');
-                const metas = await response.json();
-                renderizarMetas(metas);
-            } catch (error) {
-                console.warn('Backend indisponível. Usando armazenamento local do navegador.');
-                const metasLocais = JSON.parse(localStorage.getItem('metas_backup') || '[]');
-                renderizarMetas(metasLocais);
-            }
-        }
+  // Data limite mínima: amanhã (o backend exige @Future)
+  const amanha = new Date();
+  amanha.setDate(amanha.getDate() + 1);
+  const minDate = amanha.toISOString().split("T")[0];
+  document.getElementById("meta-dataLimite").min = minDate;
+  document.getElementById("edit-dataLimite").min = minDate;
 
-        function renderizarMetas(metas) {
-            const grid = document.getElementById('metasGrid');
-            grid.innerHTML = '';
+  await renderTabela();
 
-            if (!metas || metas.length === 0) {
-                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #7f8c8d; padding: 40px;">Você ainda não cadastrou nenhuma meta.</p>`;
-                return;
-            }
+  document.getElementById("formMeta").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const msg = document.getElementById("msg-meta");
+    const ok = await MetasAPI.criar({
+      nome: document.getElementById("meta-nome").value.trim(),
+      valorObjetivo: parseFloat(document.getElementById("meta-valorObjetivo").value),
+      valorContribuido: parseFloat(document.getElementById("meta-valorContribuido").value) || 0,
+      dataLimite: document.getElementById("meta-dataLimite").value
+    });
+    if (ok) {
+      this.reset();
+      document.getElementById("meta-valorContribuido").value = "0";
+      msg.textContent = "Meta adicionada!"; msg.style.color = "green";
+      setTimeout(() => msg.textContent = "", 2500);
+      await renderTabela();
+    } else {
+      msg.textContent = "Erro ao salvar. Verifique os dados."; msg.style.color = "red";
+    }
+  });
+});
 
-            metas.forEach(meta => {
-                const alvo = Number(meta.valorAlvo) || 0;
-                const atual = Number(meta.valorAtual) || 0;
-                const percentual = alvo > 0 ? Math.min(((atual / alvo) * 100), 100).toFixed(1) : 0;
-                
-                // Trata fusos horários locais ao formatar a data vinda do input tipo date
-                let dataFormatada = 'Sem prazo';
-                if (meta.dataLimite) {
-                    const dateObj = new Date(meta.dataLimite + 'T00:00:00');
-                    dataFormatada = isNaN(dateObj.getTime()) ? 'Sem prazo' : dateObj.toLocaleDateString('pt-BR');
-                }
+async function renderTabela() {
+  todasMetas = await MetasAPI.listar();
+  renderFiltrado();
+}
 
-                const card = document.createElement('div');
-                card.className = 'meta-card';
-                card.innerHTML = `
-                    <div class="meta-header">
-                        <h3 class="meta-title">${meta.descricao}</h3>
-                        <button class="btn-delete" onclick="deletarMeta(${meta.id})">Excluir</button>
-                    </div>
-                    <div class="meta-values">
-                        <span>Progresso: ${percentual}%</span>
-                        <span class="meta-target">Alvo: R$ ${alvo.toFixed(2)}</span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" style="width: ${percentual}%; background-color: ${percentual >= 100 ? '#2ecc71' : '#3498db'}"></div>
-                    </div>
-                    <div class="meta-footer">
-                        <span>Poupado: R$ ${atual.toFixed(2)}</span>
-                        <span>Prazo: ${dataFormatada}</span>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
+function renderFiltrado() {
+  let lista;
+  if (filtroAtivo === "atingidas") {
+    lista = todasMetas.filter(m => m.atingida);
+  } else if (filtroAtivo === "andamento") {
+    lista = todasMetas.filter(m => !m.atingida);
+  } else {
+    lista = [...todasMetas];
+  }
 
-        async function salvarMeta(event) {
-            event.preventDefault();
+  lista.sort((a, b) => {
+    if (ordemAtiva === "prazo") {
+      return normalizarDataLimite(a.dataLimite).localeCompare(normalizarDataLimite(b.dataLimite));
+    }
+    return (parseFloat(b.porcentagemMeta) || 0) - (parseFloat(a.porcentagemMeta) || 0);
+  });
 
-            const novaMeta = {
-                descricao: document.getElementById('descricao').value,
-                valorAlvo: parseFloat(document.getElementById('valorAlvo').value),
-                valorAtual: parseFloat(document.getElementById('valorAtual').value || 0),
-                dataLimite: document.getElementById('dataLimite').value || null
-            };
+  document.getElementById("total-metas").textContent = todasMetas.length;
+  document.getElementById("metas-atingidas").textContent = todasMetas.filter(m => m.atingida).length;
+  document.getElementById("metas-andamento").textContent = todasMetas.filter(m => !m.atingida).length;
 
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(novaMeta)
-                });
+  const tbody = document.getElementById("tabela-metas");
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:30px">Nenhuma meta encontrada.</td></tr>';
+    return;
+  }
 
-                if (!response.ok) throw new Error('Erro ao salvar meta');
-                closeModal();
-                carregarMetas();
-            } catch (error) {
-                let metasLocais = JSON.parse(localStorage.getItem('metas_backup') || '[]');
-                novaMeta.id = Date.now(); 
-                metasLocais.push(novaMeta);
-                localStorage.setItem('metas_backup', JSON.stringify(metasLocais));
-                
-                closeModal();
-                renderizarMetas(metasLocais);
-            }
-        }
+  tbody.innerHTML = lista.map(m => {
+    const pct = Math.min(parseFloat(m.porcentagemMeta) || 0, 100);
+    const fillClass = m.atingida ? "completo" : pct < 30 ? "critico" : "";
+    const statusBadge = m.atingida
+      ? '<span class="badge badge-concluido">✅ Atingida</span>'
+      : '<span class="badge badge-andamento">⏳ Em andamento</span>';
+    return `<tr>
+      <td><strong>${m.nome}</strong></td>
+      <td>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:3px">${pct.toFixed(1)}%</div>
+        <div class="progress-mini">
+          <div class="progress-mini-fill ${fillClass}" style="width:${pct}%"></div>
+        </div>
+      </td>
+      <td class="positivo">+ ${formatarMoeda(m.valorContribuido)}</td>
+      <td>${formatarMoeda(m.valorObjetivo)}</td>
+      <td>${formatarDataLimite(m.dataLimite)}</td>
+      <td>${statusBadge}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm" style="background:#e0f2fe;color:#0369a1;border:none" onclick="abrirModal(${m.idMeta})">✏️ Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="excluir(${m.idMeta})">Excluir</button>
+      </td>
+    </tr>`;
+  }).join("");
+}
 
-        async function deletarMeta(id) {
-            if (!confirm('Tem certeza que deseja remover esta meta?')) return;
+window.setFiltro = function (tipo) {
+  filtroAtivo = tipo;
+  document.querySelectorAll(".btn-filtro").forEach(b => b.classList.remove("ativo"));
+  const idMap = { todas: "filtro-todas", andamento: "filtro-andamento", atingidas: "filtro-atingidas" };
+  document.getElementById(idMap[tipo])?.classList.add("ativo");
+  renderFiltrado();
+};
 
-            try {
-                const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers });
-                if (!response.ok) throw new Error('Erro ao deletar meta');
-                carregarMetas();
-            } catch (error) {
-                let metasLocais = JSON.parse(localStorage.getItem('metas_backup') || '[]');
-                metasLocais = metasLocais.filter(m => m.id !== id);
-                localStorage.setItem('metas_backup', JSON.stringify(metasLocais));
-                renderizarMetas(metasLocais);
-            }
-        }
-    </script>
+window.setOrdem = function (ordem) {
+  ordemAtiva = ordem;
+  document.getElementById("ord-prazo").classList.toggle("ativo", ordem === "prazo");
+  document.getElementById("ord-progresso").classList.toggle("ativo", ordem === "progresso");
+  renderFiltrado();
+};
+
+window.excluir = async function (id) {
+  if (!confirm("Excluir esta meta?")) return;
+  await MetasAPI.excluir(id);
+  await renderTabela();
+};
+
+window.abrirModal = function (id) {
+  const m = todasMetas.find(x => x.idMeta === id);
+  if (!m) return;
+  document.getElementById("edit-id").value = id;
+  document.getElementById("edit-nome").value = m.nome;
+  document.getElementById("edit-valorObjetivo").value = m.valorObjetivo;
+  document.getElementById("edit-valorContribuido").value = m.valorContribuido;
+  document.getElementById("edit-dataLimite").value = normalizarDataLimite(m.dataLimite);
+  document.getElementById("msg-edit").textContent = "";
+  document.getElementById("modal-edicao").classList.add("aberto");
+};
+
+window.fecharModal = function () {
+  document.getElementById("modal-edicao").classList.remove("aberto");
+};
+
+document.getElementById("modal-edicao").addEventListener("click", function (e) {
+  if (e.target === this) fecharModal();
+});
+
+window.salvarEdicao = async function () {
+  const id = parseInt(document.getElementById("edit-id").value);
+  const msg = document.getElementById("msg-edit");
+  const ok = await MetasAPI.editar(id, {
+    nome: document.getElementById("edit-nome").value.trim(),
+    valorObjetivo: parseFloat(document.getElementById("edit-valorObjetivo").value),
+    valorContribuido: parseFloat(document.getElementById("edit-valorContribuido").value) || 0,
+    dataLimite: document.getElementById("edit-dataLimite").value
+  });
+  if (ok) {
+    msg.textContent = "Salvo!"; msg.style.color = "green";
+    setTimeout(() => fecharModal(), 900);
+    await renderTabela();
+  } else {
+    msg.textContent = "Erro ao salvar. A data limite deve ser futura."; msg.style.color = "red";
+  }
+};
+</script>
 </body>
 </html>
