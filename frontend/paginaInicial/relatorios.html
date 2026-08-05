@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinControl - Relatórios</title>
+<link rel="stylesheet" href="dashboard-shared.css">
+<style>
+  .nav-mes {
+    display: flex; align-items: center; justify-content: center;
+    gap: 16px; margin-bottom: 24px;
+  }
+  .btn-mes {
+    background: white; border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 8px 16px; font-size: 18px;
+    cursor: pointer; transition: 0.2s; color: var(--text-dark);
+  }
+  .btn-mes:hover { background: var(--verde-medio); color: white; border-color: var(--verde-medio); }
+  .label-mes { font-size: 18px; font-weight: 700; color: var(--text-dark); min-width: 180px; text-align: center; }
+  .cat-bar { margin-bottom: 14px; }
+  .cat-bar-header { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; }
+  .cat-bar-header span:first-child { font-weight: 600; }
+  .progress-bar { background: #e2e8f0; border-radius: 999px; height: 8px; }
+  .progress-fill { height: 8px; border-radius: 999px; transition: width 0.4s; }
+</style>
+</head>
+<body>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="logo">Fin<span>Control</span></div>
+    <nav>
+      <a href="dashboard.html">🏠 Início</a>
+      <a href="receitas.html">💰 Receitas</a>
+      <a href="despesas.html">📉 Despesas</a>
+      <a href="metas.html">🎯 Metas</a>
+      <a href="relatorios.html" class="active">📊 Relatórios</a>
+      <a href="configuracoes.html">⚙ Configurações</a>
+    </nav>
+    <button class="logout-btn" onclick="logout()">🚪 Sair</button>
+  </aside>
+  <main class="main-content">
+    <header class="topbar">
+      <h1>📊 Relatórios</h1>
+      <p>Visão detalhada da sua situação financeira por mês</p>
+    </header>
+
+    <!-- Navegação por mês -->
+    <div class="nav-mes">
+      <button class="btn-mes" onclick="mudarMes(-1)">&#8592;</button>
+      <span class="label-mes" id="label-mes">—</span>
+      <button class="btn-mes" onclick="mudarMes(1)">&#8594;</button>
+    </div>
+
+    <section class="cards">
+      <div class="card receita"><h3>Total Receitas</h3><p id="rel-receitas">R$ 0,00</p></div>
+      <div class="card despesa"><h3>Total Despesas</h3><p id="rel-despesas">R$ 0,00</p></div>
+      <div class="card saldo" id="card-saldo-rel"><h3>Saldo</h3><p id="rel-saldo">R$ 0,00</p></div>
+    </section>
+
+    <div class="box">
+      <h2>Despesas por Categoria</h2>
+      <div id="categorias-despesas"><p style="color:#94a3b8">Carregando...</p></div>
+    </div>
+    <div class="box">
+      <h2>Receitas por Categoria</h2>
+      <div id="categorias-receitas"><p style="color:#94a3b8">Carregando...</p></div>
+    </div>
+    <div class="box">
+      <h2>Histórico do Mês</h2>
+      <table>
+        <thead><tr><th>Tipo</th><th>Descrição</th><th>Categoria</th><th>Recorrência</th><th>Data</th><th>Valor</th></tr></thead>
+        <tbody id="tabela-completa">
+          <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:30px">Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="dados.js"></script>
+<script>
+const agora = new Date();
+let anoAtual = agora.getFullYear();
+let mesAtual = agora.getMonth() + 1;
+
+document.addEventListener("DOMContentLoaded", function () {
+  verificarLogin();
+  carregarRelatorio();
+});
+
+async function carregarRelatorio() {
+  // Atualiza label do mês
+  document.getElementById("label-mes").textContent =
+    MESES[mesAtual - 1] + " / " + anoAtual;
+
+  // Mostra loading
+  ["categorias-despesas","categorias-receitas"].forEach(id =>
+    document.getElementById(id).innerHTML = '<p style="color:#94a3b8">Carregando...</p>');
+  document.getElementById("tabela-completa").innerHTML =
+    '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:30px">Carregando...</td></tr>';
+
+  const dash = await DashboardAPI.dados(anoAtual, mesAtual);
+
+  if (!dash) {
+    ["categorias-despesas","categorias-receitas"].forEach(id =>
+      document.getElementById(id).innerHTML = '<p style="color:#94a3b8">Sem dados para este período.</p>');
+    document.getElementById("tabela-completa").innerHTML =
+      '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:30px">Sem dados para este período.</td></tr>';
+    return;
+  }
+
+  // Cards
+  const saldo = dash.saldo;
+  document.getElementById("rel-receitas").textContent = formatarMoeda(dash.totalReceitas);
+  document.getElementById("rel-despesas").textContent = formatarMoeda(dash.totalDespesas);
+  document.getElementById("rel-saldo").textContent = formatarMoeda(saldo);
+  const cardSaldo = document.getElementById("card-saldo-rel");
+  const pSaldo = document.getElementById("rel-saldo");
+  if (saldo < 0) {
+    cardSaldo.style.borderLeftColor = "#ef4444";
+    pSaldo.style.color = "#ef4444";
+  } else {
+    cardSaldo.style.borderLeftColor = "";
+    pSaldo.style.color = "";
+  }
+
+  // Barras de categoria
+  renderBarras(dash.despesasPorCategoria, "categorias-despesas", "#ef4444", "nomeCategoria", "valorTotal");
+  renderBarras(dash.receitasPorCategoria, "categorias-receitas", "#22c55e", "nomeCategoria", "valorTotal");
+
+  // Tabela histórico
+  const tbody = document.getElementById("tabela-completa");
+  const lancamentos = dash.ultimosLancamentos;
+  if (!lancamentos || lancamentos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:30px">Nenhum lançamento neste mês.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = lancamentos.map(i => {
+    const isReceita = i.tipo === "RECEITA";
+    const tipoRecorrencia = i.recorrencia === "FIXA"
+      ? '<span style="font-size:11px;font-weight:700;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:12px">📌 Fixa</span>'
+      : '<span style="font-size:11px;font-weight:700;background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:12px">⏳ Temp.</span>';
+    return `<tr>
+      <td><span class="badge badge-${isReceita ? 'receita' : 'despesa'}">${isReceita ? '💰 Receita' : '📉 Despesa'}</span></td>
+      <td>${i.descricao}</td>
+      <td>${i.categoria}</td>
+      <td>${tipoRecorrencia}</td>
+      <td>${new Date(i.data).toLocaleDateString("pt-BR")}</td>
+      <td class="${isReceita ? 'positivo' : 'negativo'}">${isReceita ? '+' : '-'} ${formatarMoeda(i.valor)}</td>
+    </tr>`;
+  }).join("");
+}
+
+function renderBarras(lista, elementId, cor, campoNome, campoValor) {
+  const div = document.getElementById(elementId);
+  if (!lista || lista.length === 0) {
+    div.innerHTML = '<p style="color:#94a3b8">Nenhum registro neste período.</p>';
+    return;
+  }
+  const total = lista.reduce((a, b) => a + b[campoValor], 0);
+  div.innerHTML = [...lista]
+    .sort((a, b) => b[campoValor] - a[campoValor])
+    .map(item => {
+      const p = total > 0 ? Math.round(item[campoValor] / total * 100) : 0;
+      return `<div class="cat-bar">
+        <div class="cat-bar-header">
+          <span>${item[campoNome]}</span>
+          <span>${formatarMoeda(item[campoValor])} <span style="color:#94a3b8">(${p}%)</span></span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${p}%;background:${cor}"></div></div>
+      </div>`;
+    }).join("");
+}
+
+function mudarMes(delta) {
+  mesAtual += delta;
+  if (mesAtual > 12) { mesAtual = 1; anoAtual++; }
+  if (mesAtual < 1)  { mesAtual = 12; anoAtual--; }
+  carregarRelatorio();
+}
+</script>
+</body>
+</html>

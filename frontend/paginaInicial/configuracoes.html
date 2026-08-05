@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinControl - Configurações</title>
+<link rel="stylesheet" href="dashboard-shared.css">
+<style>
+  .perfil-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: var(--verde-medio); color: white;
+    font-size: 30px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+  .perfil-info { display:flex; align-items:center; gap:20px; margin-bottom:24px; }
+  .perfil-info-text h3 { font-size:18px; margin-bottom:4px; }
+  .perfil-info-text p { font-size:13px; color:var(--text-muted); }
+  .campo-leitura { background:#f4f6f5 !important; cursor:not-allowed !important; color:var(--text-muted) !important; }
+  .secao-titulo { font-size:13px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); font-weight:700; margin:24px 0 12px; border-bottom:1px solid var(--border); padding-bottom:8px; }
+  .badge-plan { display:inline-block; padding:3px 12px; border-radius:20px; font-size:12px; font-weight:700; background:#dcfce7; color:#166534; margin-left:8px; }
+</style>
+</head>
+<body>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="logo">Fin<span>Control</span></div>
+    <nav>
+      <a href="dashboard.html">🏠 Início</a>
+      <a href="receitas.html">💰 Receitas</a>
+      <a href="despesas.html">📉 Despesas</a>
+      <a href="metas.html">🎯 Metas</a>
+      <a href="relatorios.html">📊 Relatórios</a>
+      <a href="configuracoes.html" class="active">⚙ Configurações</a>
+    </nav>
+    <button class="logout-btn" onclick="logout()">🚪 Sair</button>
+  </aside>
+  <main class="main-content">
+    <header class="topbar">
+      <h1>⚙ Configurações</h1>
+      <p>Gerencie suas preferências e dados da conta</p>
+    </header>
+
+    <div class="box">
+      <div class="perfil-info">
+        <div class="perfil-avatar" id="cfg-avatar">?</div>
+        <div class="perfil-info-text">
+          <h3 id="cfg-nome-display">Carregando...</h3>
+          <p id="cfg-email-display">—</p>
+        </div>
+      </div>
+
+      <p class="secao-titulo">Dados do Perfil</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nome</label>
+          <input type="text" id="cfg-nome" class="campo-leitura" readonly>
+        </div>
+        <div class="form-group">
+          <label>E-mail</label>
+          <input type="email" id="cfg-email" class="campo-leitura" readonly>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>ID do Usuário</label>
+          <input type="text" id="cfg-id" class="campo-leitura" readonly>
+        </div>
+        <div class="form-group">
+          <label>Membro desde</label>
+          <input type="text" id="cfg-criado" class="campo-leitura" readonly>
+        </div>
+      </div>
+
+      <p class="secao-titulo">Conta</p>
+      <button class="btn btn-danger" onclick="logout()" style="margin-top:4px">🚪 Sair da conta</button>
+    </div>
+  </main>
+</div>
+<script src="dados.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async function () {
+  verificarLogin();
+
+  // Preenche com dados do localStorage enquanto carrega
+  const emailLocal = localStorage.getItem("fincontrol_user") || "";
+  const nomeLocal = localStorage.getItem("fincontrol_nome") || "";
+  document.getElementById("cfg-email").value = emailLocal;
+  document.getElementById("cfg-nome").value = nomeLocal;
+
+  // Busca dados atualizados do /me
+  const usuario = await UsuarioAPI.me();
+  const nome = usuario?.nome || nomeLocal || emailLocal.split("@")[0];
+  const email = usuario?.email || emailLocal;
+  const inicial = nome ? nome.charAt(0).toUpperCase() : "?";
+
+  document.getElementById("cfg-avatar").textContent = inicial;
+  document.getElementById("cfg-nome-display").textContent = nome || "—";
+  document.getElementById("cfg-email-display").textContent = email || "—";
+  document.getElementById("cfg-nome").value = nome || "—";
+  document.getElementById("cfg-email").value = email || "—";
+  document.getElementById("cfg-id").value = usuario?.id || "—";
+
+  if (usuario?.criadoEm || usuario?.createdAt || usuario?.dataCadastro) {
+    const data = new Date(usuario.criadoEm || usuario.createdAt || usuario.dataCadastro);
+    document.getElementById("cfg-criado").value = data.toLocaleDateString("pt-BR");
+  } else {
+    document.getElementById("cfg-criado").value = "—";
+  }
+});
+</script>
+</body>
+</html>

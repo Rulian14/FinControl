@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinControl - Dashboard</title>
+<link rel="stylesheet" href="dashboard-shared.css">
+</head>
+<body>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="logo">Fin<span>Control</span></div>
+    <nav>
+      <a href="dashboard.html" class="active">🏠 Início</a>
+      <a href="receitas.html">💰 Receitas</a>
+      <a href="despesas.html">📉 Despesas</a>
+      <a href="metas.html">🎯 Metas</a>
+      <a href="relatorios.html">📊 Relatórios</a>
+      <a href="configuracoes.html">⚙ Configurações</a>
+    </nav>
+    <button class="logout-btn" onclick="logout()">🚪 Sair</button>
+  </aside>
+  <main class="main-content">
+    <header class="topbar">
+      <h1 id="saudacao">Olá, Usuário 👋</h1>
+      <p id="subtitulo-usuario">Bem-vindo ao seu painel financeiro</p>
+    </header>
+    <section class="cards">
+      <div class="card saldo"><h3>Saldo Atual</h3><p id="card-saldo">R$ 0,00</p></div>
+      <div class="card receita"><h3>Receitas do Mês</h3><p id="card-receitas">R$ 0,00</p></div>
+      <div class="card despesa"><h3>Despesas do Mês</h3><p id="card-despesas">R$ 0,00</p></div>
+    </section>
+    <div class="box">
+      <h2>Últimos Lançamentos</h2>
+      <table>
+        <thead><tr><th>Descrição</th><th>Categoria</th><th>Data</th><th>Valor</th></tr></thead>
+        <tbody id="tabela-lancamentos">
+          <tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:30px">Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="dados.js"></script>
+<script src="dashboard-script.js"></script>
+</body>
+</html>
