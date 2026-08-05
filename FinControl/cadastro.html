@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinControl - Cadastro</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<div class="wrapper">
+
+    <!-- LADO ESQUERDO -->
+    <section class="hero">
+        <div class="logo">Fin<span>Control</span></div>
+
+        <p>
+            Crie sua conta e comece a organizar suas finanças de forma prática,
+            moderna e inteligente.
+        </p>
+
+        <div class="stats">
+            <div class="stat">✔ Cadastro rápido e seguro</div>
+            <div class="stat">✔ Controle total das despesas</div>
+            <div class="stat">✔ Metas financeiras personalizadas</div>
+        </div>
+    </section>
+
+    <!-- LADO DIREITO -->
+    <section class="form-area">
+
+        <h2>Criar Conta</h2>
+        <div class="subtitle">Preencha os dados abaixo para começar</div>
+
+        <form id="cadastroForm">
+
+            <label for="nome">Nome Completo</label>
+            <input type="text" id="nome" placeholder="Digite seu nome">
+
+            <label for="emailCad">E-mail</label>
+            <input type="email" id="emailCad" placeholder="seuemail@exemplo.com">
+
+            <label for="senhaCad">Senha</label>
+            <input type="password" id="senhaCad" placeholder="••••••••">
+
+            <label for="confirmar">Confirmar Senha</label>
+            <input type="password" id="confirmar" placeholder="••••••••">
+
+            <button type="submit">Cadastrar</button>
+
+            <div class="msg" id="msgCadastro"></div>
+
+        </form>
+
+        <div class="footer">
+            Já possui conta?
+            <a href="index.html">Fazer Login</a>
+        </div>
+
+    </section>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

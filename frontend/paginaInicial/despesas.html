@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinControl - Despesas</title>
+<link rel="stylesheet" href="dashboard-shared.css">
+<style>
+  .filtro-bar { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+  .filtro-bar span { font-size:13px; font-weight:600; color:var(--text-muted); margin-right:4px; }
+  .btn-filtro { padding:7px 18px; border-radius:20px; border:1.5px solid var(--border); background:white; font-size:13px; font-weight:600; cursor:pointer; transition:0.2s; color:var(--text-muted); }
+  .btn-filtro:hover { border-color:var(--verde-medio); color:var(--verde-medio); }
+  .btn-filtro.ativo { background:var(--verde-medio); color:white; border-color:var(--verde-medio); }
+  .ordenacao-bar { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
+  .ordenacao-bar span { font-size:13px; color:var(--text-muted); }
+  .btn-ordem { padding:5px 14px; border-radius:8px; border:1px solid var(--border); background:white; font-size:12px; cursor:pointer; transition:0.2s; color:var(--text-muted); }
+  .btn-ordem.ativo { background:var(--verde-escuro); color:white; border-color:var(--verde-escuro); }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; align-items:center; justify-content:center; }
+  .modal-overlay.aberto { display:flex; }
+  .modal { background:white; border-radius:16px; padding:32px; width:100%; max-width:480px; box-shadow:0 8px 32px rgba(0,0,0,0.18); }
+  .modal h2 { margin-bottom:20px; font-size:18px; color:var(--text-dark); }
+  .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+  .btn-secondary { background:white; border:1.5px solid var(--border); color:var(--text-dark); }
+  .btn-secondary:hover { background:var(--bg-page); }
+  /* Sugestões */
+  .sugestao-card { background:#faf5ff; border:1.5px solid #d8b4fe; border-radius:12px; padding:14px 16px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  .sugestao-info { flex:1; }
+  .sugestao-info strong { display:block; font-size:15px; margin-bottom:2px; }
+  .sugestao-info span { font-size:13px; color:#6b21a8; }
+  .sugestao-valor { font-size:16px; font-weight:700; color:#6b21a8; }
+  .btn-aprovar { background:#6b21a8; color:white; border:none; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; }
+  .btn-aprovar:hover { background:#581c87; }
+</style>
+</head>
+<body>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="logo">Fin<span>Control</span></div>
+    <nav>
+      <a href="dashboard.html">🏠 Início</a>
+      <a href="receitas.html">💰 Receitas</a>
+      <a href="despesas.html" class="active">📉 Despesas</a>
+      <a href="metas.html">🎯 Metas</a>
+      <a href="relatorios.html">📊 Relatórios</a>
+      <a href="configuracoes.html">⚙ Configurações</a>
+    </nav>
+    <button class="logout-btn" onclick="logout()">🚪 Sair</button>
+  </aside>
+  <main class="main-content">
+    <header class="topbar">
+      <h1>📉 Despesas</h1>
+      <p>Controle seus gastos e evite surpresas no fim do mês</p>
+    </header>
+    <section class="cards">
+      <div class="card despesa"><h3>Total de Despesas</h3><p id="total-despesas">R$ 0,00</p></div>
+      <div class="card saldo"><h3>Maior Despesa</h3><p id="maior-despesa">R$ 0,00</p></div>
+      <div class="card meta"><h3>Quantidade</h3><p id="qtd-despesas">0</p></div>
+    </section>
+
+    <!-- Sugestões -->
+    <div class="box" id="box-sugestoes" style="display:none">
+      <h2>💡 Sugestões de Despesas Fixas</h2>
+      <p style="font-size:13px;color:#6b21a8;margin-bottom:14px">Com base no seu histórico, você pode ter esquecido de lançar estas despesas:</p>
+      <div id="lista-sugestoes"></div>
+    </div>
+
+    <div class="box">
+      <h2>Nova Despesa</h2>
+      <form id="formDespesa">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Descrição</label>
+            <input type="text" id="desp-descricao" placeholder="Ex: Aluguel, Mercado..." required>
+          </div>
+          <div class="form-group">
+            <label>Categoria</label>
+            <select id="desp-categoria">
+              <option value="Aluguel">Aluguel</option>
+              <option value="Condomínio">Condomínio</option>
+              <option value="Energia Elétrica">Energia Elétrica</option>
+              <option value="Água">Água</option>
+              <option value="Gás">Gás</option>
+              <option value="Internet">Internet</option>
+              <option value="Telefone">Telefone</option>
+              <option value="Mercado">Mercado</option>
+              <option value="Transporte">Transporte</option>
+              <option value="Carro">Carro</option>
+              <option value="Cartão de Crédito">Cartão de Crédito</option>
+              <option value="Educação">Educação</option>
+              <option value="Saúde">Saúde</option>
+              <option value="Empréstimos">Empréstimos</option>
+              <option value="Lazer">Lazer</option>
+              <option value="Outras Despesas">Outras Despesas</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Valor (R$)</label>
+            <input type="number" id="desp-valor" placeholder="0,00" step="0.01" min="0" required>
+          </div>
+          <div class="form-group">
+            <label>Data</label>
+            <input type="date" id="desp-data" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="desp-recorrencia">
+              <option value="FIXA">Despesa Fixa</option>
+              <option value="TEMPORARIA">Despesa Temporária</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="desp-status">
+              <option value="PAGA">✅ Paga</option>
+              <option value="PENDENTE">⏳ Pendente</option>
+              <option value="AGENDADA">📅 Agendada</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">+ Adicionar Despesa</button>
+        <span class="msg" id="msg-despesa" style="margin-left:14px;font-size:14px"></span>
+      </form>
+    </div>
+
+    <div class="box">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+        <h2 style="margin-bottom:0">Histórico de Despesas</h2>
+      </div>
+      <div class="filtro-bar">
+        <span>Filtrar:</span>
+        <button class="btn-filtro ativo" id="filtro-todos" onclick="setFiltro('todos')">Todas</button>
+        <button class="btn-filtro" id="filtro-fixas" onclick="setFiltro('FIXA')">📌 Fixas</button>
+        <button class="btn-filtro" id="filtro-temporarias" onclick="setFiltro('TEMPORARIA')">⏳ Temporárias</button>
+        <button class="btn-filtro" id="filtro-paga" onclick="setFiltro('PAGA')">✅ Pagas</button>
+        <button class="btn-filtro" id="filtro-pendente" onclick="setFiltro('PENDENTE')">⏳ Pendentes</button>
+        <button class="btn-filtro" id="filtro-agendada" onclick="setFiltro('AGENDADA')">📅 Agendadas</button>
+      </div>
+      <div class="ordenacao-bar">
+        <span>Ordenar:</span>
+        <button class="btn-ordem" id="ord-antiga" onclick="setOrdem('antiga')">Mais antiga primeiro</button>
+        <button class="btn-ordem ativo" id="ord-recente" onclick="setOrdem('recente')">Mais recente primeiro</button>
+      </div>
+      <table>
+        <thead><tr><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Status</th><th>Data</th><th>Valor</th><th>Ação</th></tr></thead>
+        <tbody id="tabela-despesas">
+          <tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:30px">Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Modal de Edição -->
+<div class="modal-overlay" id="modal-edicao">
+  <div class="modal">
+    <h2>✏️ Editar Despesa</h2>
+    <input type="hidden" id="edit-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Descrição</label>
+        <input type="text" id="edit-descricao" required>
+      </div>
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="edit-categoria">
+          <option value="Aluguel">Aluguel</option>
+          <option value="Condomínio">Condomínio</option>
+          <option value="Energia Elétrica">Energia Elétrica</option>
+          <option value="Água">Água</option>
+          <option value="Gás">Gás</option>
+          <option value="Internet">Internet</option>
+          <option value="Telefone">Telefone</option>
+          <option value="Mercado">Mercado</option>
+          <option value="Transporte">Transporte</option>
+          <option value="Carro">Carro</option>
+          <option value="Cartão de Crédito">Cartão de Crédito</option>
+          <option value="Educação">Educação</option>
+          <option value="Saúde">Saúde</option>
+          <option value="Empréstimos">Empréstimos</option>
+          <option value="Lazer">Lazer</option>
+          <option value="Outras Despesas">Outras Despesas</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Valor (R$)</label>
+        <input type="number" id="edit-valor" step="0.01" min="0" required>
+      </div>
+      <div class="form-group">
+        <label>Data</label>
+        <input type="date" id="edit-data" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="edit-recorrencia">
+          <option value="FIXA">Despesa Fixa</option>
+          <option value="TEMPORARIA">Despesa Temporária</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="edit-status">
+          <option value="PAGA">✅ Paga</option>
+          <option value="PENDENTE">⏳ Pendente</option>
+          <option value="AGENDADA">📅 Agendada</option>
+        </select>
+      </div>
+    </div>
+    <span class="msg" id="msg-edit" style="font-size:13px;display:block;min-height:18px"></span>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarEdicao()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<script src="dados.js"></script>
+<script>
+let filtroAtivo = "todos";
+let ordemAtiva = "recente";
+let todasDespesas = [];
+
+document.addEventListener("DOMContentLoaded", async function () {
+  verificarLogin();
+  document.getElementById("desp-data").valueAsDate = new Date();
+  await renderTabela();
+  await carregarSugestoes();
+
+  document.getElementById("formDespesa").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const msg = document.getElementById("msg-despesa");
+    const ok = await DespesasAPI.criar({
+      descricao: document.getElementById("desp-descricao").value.trim(),
+      categoria: document.getElementById("desp-categoria").value,
+      valor: parseFloat(document.getElementById("desp-valor").value),
+      data: document.getElementById("desp-data").value,
+      recorrencia: document.getElementById("desp-recorrencia").value,
+      status: document.getElementById("desp-status").value
+    });
+    if (ok) {
+      this.reset();
+      document.getElementById("desp-data").valueAsDate = new Date();
+      msg.textContent = "Despesa adicionada!"; msg.style.color = "green";
+      setTimeout(() => msg.textContent = "", 2500);
+      await renderTabela();
+      await carregarSugestoes();
+    } else {
+      msg.textContent = "Erro ao salvar. Verifique os dados."; msg.style.color = "red";
+    }
+  });
+});
+
+async function carregarSugestoes() {
+  const sugestoes = await DespesasAPI.sugestoes();
+  const box = document.getElementById("box-sugestoes");
+  const lista = document.getElementById("lista-sugestoes");
+  if (!sugestoes.length) { box.style.display = "none"; return; }
+  box.style.display = "block";
+  lista.innerHTML = sugestoes.map((s, i) => `
+    <div class="sugestao-card" id="sug-${i}">
+      <div class="sugestao-info">
+        <strong>${s.descricao}</strong>
+        <span>${s.categoria} · ${new Date(s.data).toLocaleDateString("pt-BR")} · Fixa</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="sugestao-valor">${formatarMoeda(s.valor)}</span>
+        <button class="btn-aprovar" onclick="aprovarSugestao(${i})">✔ Aprovar</button>
+      </div>
+    </div>`).join("");
+  window._sugestoes = sugestoes;
+}
+
+window.aprovarSugestao = async function(idx) {
+  const s = window._sugestoes[idx];
+  const ok = await DespesasAPI.criar({
+    descricao: s.descricao,
+    idCategoria: s.idCategoria,
+    valor: s.valor,
+    data: s.data,
+    recorrencia: "FIXA",
+    status: "AGENDADA"
+  });
+  if (ok) {
+    document.getElementById("sug-" + idx).remove();
+    if (!document.querySelectorAll(".sugestao-card").length) {
+      document.getElementById("box-sugestoes").style.display = "none";
+    }
+    await renderTabela();
+  } else {
+    alert("Erro ao registrar sugestão.");
+  }
+};
+
+async function renderTabela() {
+  todasDespesas = await DespesasAPI.listar();
+  renderFiltrado();
+}
+
+function renderFiltrado() {
+  const statusFiltros = ["PAGA","PENDENTE","AGENDADA"];
+  let lista;
+  if (statusFiltros.includes(filtroAtivo)) {
+    lista = todasDespesas.filter(d => (d.status || "PAGA") === filtroAtivo);
+  } else if (filtroAtivo === "todos") {
+    lista = [...todasDespesas];
+  } else {
+    lista = todasDespesas.filter(d => (d.recorrencia || "FIXA") === filtroAtivo);
+  }
+
+  lista.sort((a, b) => {
+    const diff = new Date(a.data) - new Date(b.data);
+    return ordemAtiva === "recente" ? -diff : diff;
+  });
+
+  document.getElementById("total-despesas").textContent = formatarMoeda(todasDespesas.reduce((a, d) => a + d.valor, 0));
+  document.getElementById("qtd-despesas").textContent = todasDespesas.length;
+  const maior = todasDespesas.length > 0 ? Math.max(...todasDespesas.map(d => d.valor)) : 0;
+  document.getElementById("maior-despesa").textContent = formatarMoeda(maior);
+
+  const tbody = document.getElementById("tabela-despesas");
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:30px">Nenhuma despesa encontrada.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = lista.map(d => {
+    const tipo = d.recorrencia || "FIXA";
+    const badgeTipo = tipo === "FIXA"
+      ? '<span style="display:inline-block;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:700;background:#e0f2fe;color:#0369a1">📌 Fixa</span>'
+      : '<span style="display:inline-block;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:700;background:#fef9c3;color:#92400e">⏳ Temporária</span>';
+    return `<tr>
+      <td>${d.descricao}</td>
+      <td><span class="badge badge-despesa">${d.categoria}</span></td>
+      <td>${badgeTipo}</td>
+      <td>${badgeStatus(d.status || "PAGA")}</td>
+      <td>${new Date(d.data).toLocaleDateString("pt-BR")}</td>
+      <td class="negativo">- ${formatarMoeda(d.valor)}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm" style="background:#e0f2fe;color:#0369a1;border:none" onclick="abrirModal(${d.id})">✏️ Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="excluir(${d.id})">Excluir</button>
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+window.setFiltro = function(tipo) {
+  filtroAtivo = tipo;
+  document.querySelectorAll(".btn-filtro").forEach(b => b.classList.remove("ativo"));
+  const idMap = { todos:"filtro-todos", FIXA:"filtro-fixas", TEMPORARIA:"filtro-temporarias", PAGA:"filtro-paga", PENDENTE:"filtro-pendente", AGENDADA:"filtro-agendada" };
+  document.getElementById(idMap[tipo])?.classList.add("ativo");
+  renderFiltrado();
+};
+
+window.setOrdem = function(ordem) {
+  ordemAtiva = ordem;
+  document.getElementById("ord-antiga").classList.toggle("ativo", ordem === "antiga");
+  document.getElementById("ord-recente").classList.toggle("ativo", ordem === "recente");
+  renderFiltrado();
+};
+
+window.excluir = async function(id) {
+  if (!confirm("Excluir esta despesa?")) return;
+  await DespesasAPI.excluir(id);
+  await renderTabela();
+};
+
+window.abrirModal = function(id) {
+  const d = todasDespesas.find(x => x.id === id);
+  if (!d) return;
+  document.getElementById("edit-id").value = id;
+  document.getElementById("edit-descricao").value = d.descricao;
+  document.getElementById("edit-categoria").value = d.categoria;
+  document.getElementById("edit-valor").value = d.valor;
+  document.getElementById("edit-data").value = (d.data || "").slice(0, 10);
+  document.getElementById("edit-recorrencia").value = d.recorrencia || "FIXA";
+  document.getElementById("edit-status").value = d.status || "PAGA";
+  document.getElementById("msg-edit").textContent = "";
+  document.getElementById("modal-edicao").classList.add("aberto");
+};
+
+window.fecharModal = function() {
+  document.getElementById("modal-edicao").classList.remove("aberto");
+};
+
+document.getElementById("modal-edicao").addEventListener("click", function(e) {
+  if (e.target === this) fecharModal();
+});
+
+window.salvarEdicao = async function() {
+  const id = parseInt(document.getElementById("edit-id").value);
+  const msg = document.getElementById("msg-edit");
+  const ok = await DespesasAPI.editar(id, {
+    descricao: document.getElementById("edit-descricao").value.trim(),
+    categoria: document.getElementById("edit-categoria").value,
+    valor: parseFloat(document.getElementById("edit-valor").value),
+    data: document.getElementById("edit-data").value,
+    recorrencia: document.getElementById("edit-recorrencia").value,
+    status: document.getElementById("edit-status").value
+  });
+  if (ok) {
+    msg.textContent = "Salvo!"; msg.style.color = "green";
+    setTimeout(() => fecharModal(), 900);
+    await renderTabela();
+  } else {
+    msg.textContent = "Erro ao salvar alterações."; msg.style.color = "red";
+  }
+};
+</script>
+</body>
+</html>

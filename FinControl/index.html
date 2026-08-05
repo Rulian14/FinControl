@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exemplo de Modal Personalizado</title>
+    <style>
+        /* Estilos básicos para o botão que abre o modal */
+        #btn-excluir {
+            padding: 10px 20px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        /* Estilo do fundo do modal (overlay) - Fica oculto por padrão */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Fundo escurecido */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden; /* Começa oculto */
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s; /* Transição suave */
+        }
+
+        /* Classe para mostrar o modal */
+        .modal-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Estilo da caixa do modal (o conteúdo) */
+        .modal-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 300px;
+        }
+
+        /* Texto dentro do modal */
+        .modal-content p {
+            margin-top: 0;
+            font-size: 18px;
+        }
+
+        /* Container para os botões do modal */
+        .modal-buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        /* Estilos comuns para os botões do modal */
+        .modal-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Estilo do botão Cancelar */
+        .modal-buttons .btn-cancelar {
+            background-color: #bdc3c7;
+            color: black;
+        }
+
+        /* Estilo do botão OK/Excluir */
+        .modal-buttons .btn-confirmar {
+            background-color: #e74c3c;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Gerenciar Receitas</h2>
+    
+    <button id="btn-excluir">Excluir Receita</button>
+
+    <div class="modal-overlay" id="modal-confirmacao">
+        <div class="modal-content">
+            <p>Deseja excluir esta receita?</p>
+            <div class="modal-buttons">
+                <button id="cancelar-exclusao" class="btn-cancelar">Cancelar</button>
+                <button id="confirmar-exclusao" class="btn-confirmar">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Referências aos elementos do DOM
+        const btnExcluir = document.getElementById('btn-excluir');
+        const modal = document.getElementById('modal-confirmacao');
+        const btnCancelar = document.getElementById('cancelar-exclusao');
+        const btnConfirmar = document.getElementById('confirmar-exclusao');
+
+        // Função para mostrar o modal
+        function abrirModal() {
+            modal.classList.add('show');
+        }
+
+        // Função para fechar o modal
+        function fecharModal() {
+            modal.classList.remove('show');
+        }
+
+        // Evento para abrir o modal ao clicar no botão "Excluir Receita"
+        btnExcluir.addEventListener('click', abrirModal);
+
+        // Evento para fechar o modal ao clicar em "Cancelar"
+        btnCancelar.addEventListener('click', fecharModal);
+
+        // Evento para fechar o modal ao clicar fora da caixa (no fundo escurecido)
+        modal.addEventListener('click', function(event) {
+            // Verifica se o clique foi no fundo (modal-overlay) e não dentro da caixa
+            if (event.target === modal) {
+                fecharModal();
+            }
+        });
+
+        // Evento para quando o usuário confirma a exclusão
+        btnConfirmar.addEventListener('click', function() {
+            console.log('Receita excluída com sucesso!');
+            // Coloque aqui o código para excluir a receita
+            
+            // Depois de tudo, fecha o modal
+            fecharModal();
+        });
+    </script>
+
+</body>
+</html>
